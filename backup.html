@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Asteroids</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: none;
+        }
+        
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        #gameCanvas {
+            background-color: #000;
+            width: 100%;
+            height: 100%;
+            display: block;
+            touch-action: none;
+        }
+        
+        #gameState {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 10;
+            padding: 20px;
+        }
+        
+        #gameState h2 {
+            margin-bottom: 20px;
+            color: #fff;
+            font-size: 36px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        
+        #gameState p {
+            margin: 10px 0;
+            font-size: 20px;
+            color: #fff;
+            max-width: 90%;
+            line-height: 1.5;
+        }
+        
+        .game-btn {
+            background-color: #fff;
+            color: #000;
+            border: none;
+            font-size: 24px;
+            padding: 15px 40px;
+            margin-top: 30px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .game-btn:active {
+            background-color: #ccc;
+            transform: scale(0.98);
+        }
+        
+        .game-btn:focus {
+            outline: none;
+        }
+        
+        @media (max-width: 600px) {
+            #gameState h2 {
+                font-size: 28px;
+            }
+            
+            #gameState p {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="gameState">
+            <h2>Asteroids</h2>
+            <p>Destroy all asteroids!</p>
+            <p>Avoid collisions with asteroids and UFOs</p>
+            <p>Each asteroid splits into smaller pieces</p>
+            <button id="startBtn" class="game-btn">START GAME</button>
+        </div>
+    </div>
+
+    <script>
+        // Inizializzazione del canvas
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameState = document.getElementById('gameState');
+        const startBtn = document.getElementById('startBtn');
+        
+        // Imposta le dimensioni del canvas a schermo intero
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        // Variabili di gioco
+        let gameActive = false;
+        let score = 0;
+        let lives = 3;
+        let level = 1;
+        let asteroids = [];
+        let bullets = [];
+        let ufos = [];
+        let particles = [];
+        let ship;
+        let lastShotTime = 0;
+        let ufoSpawnTimer = 0;
+        let gameOver = false;
+        
+        // Variabili per i controlli touch
+        let isThrusting = false;
+        let isRotatingLeft = false;
+        let isRotatingRight = false;
+        
+        // Variabili per gesture recognition
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+        let isTouching = false;
+        
+        // Variabili per l'iperspazio (press and hold)
+        let hyperspaceHoldTimer = null;
+        let isHoldingForHyperspace = false;
+        const HYPERSPACE_HOLD_TIME = 1000; // 1 secondo per attivare l'iperspazio
+        
+        // Classe della navicella
+        class Ship {
+            constructor() {
+                this.reset();
+            }
+            
+            reset() {
+                this.x = canvas.width / 2;
+                this.y = canvas.height / 2;
+                this.radius = 15;
+                this.angle = -Math.PI / 2; // Punta verso l'alto
+                this.rotation = 0;
+                this.velX = 0;
+                this.velY = 0;
+                this.thrust = false;
+                this.thrustPower = 0.1;
+                this.rotationSpeed = 0.08;
+                this.friction = 0.98;
+                this.invincible = false;
+                this.invincibleTimer = 0;
+                this.blinkTimer = 0;
+                this.visible = true;
+            }
+            
+            update() {
+                // Gestione invincibilità
+                if (this.invincible) {
+                    this.invincibleTimer--;
+                    this.blinkTimer++;
+                    
+                    // Lampeggio durante l'invincibilità
+                    if (this.blinkTimer % 10 < 5) {
+                        this.visible = true;
+                    } else {
+                        this.visible = false;
+                    }
+                    
+                    if (this.invincibleTimer <= 0) {
+                        this.invincible = false;
+                        this.visible = true;
+                    }
+                }
+                
+                // Rotazione dai controlli
+                this.rotation = 0;
+                if (isRotatingLeft) this.rotation -= this.rotationSpeed;
+                if (isRotatingRight) this.rotation += this.rotationSpeed;
+                
+                // Rotazione
+                this.angle += this.rotation;
+                
+                // Accelerazione dai controlli
+                this.thrust = isThrusting;
+                
+                // Accelerazione
+                if (this.thrust) {
+                    this.velX += Math.cos(this.angle) * this.thrustPower;
+                    this.velY += Math.sin(this.angle) * this.thrustPower;
+                    
+                    // Aggiungi particelle di propulsione
+                    for (let i = 0; i < 3; i++) {
+                        particles.push({
+                            x: this.x - Math.cos(this.angle) * this.radius,
+                            y: this.y - Math.sin(this.angle) * this.radius,
+                            velX: Math.cos(this.angle + Math.PI + (Math.random() * 0.4 - 0.2)) * (3 + Math.random() * 3),
+                            velY: Math.sin(this.angle + Math.PI + (Math.random() * 0.4 - 0.2)) * (3 + Math.random() * 3),
+                            life: 20 + Math.random() * 20,
+                            color: '#fff'
+                        });
+                    }
+                }
+                
+                // Applica attrito
+                this.velX *= this.friction;
+                this.velY *= this.friction;
+                
+                // Movimento
+                this.x += this.velX;
+                this.y += this.velY;
+                
+                // Gestione bordi (wrap-around)
+                if (this.x < -this.radius) this.x = canvas.width + this.radius;
+                if (this.x > canvas.width + this.radius) this.x = -this.radius;
+                if (this.y < -this.radius) this.y = canvas.height + this.radius;
+                if (this.y > canvas.height + this.radius) this.y = -this.radius;
+            }
+            
+            draw() {
+                if (!this.visible) return;
+                
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                
+                // Disegna la navicella (triangolo)
+                ctx.beginPath();
+                ctx.moveTo(this.radius, 0);
+                ctx.lineTo(-this.radius, -this.radius * 0.7);
+                ctx.lineTo(-this.radius, this.radius * 0.7);
+                ctx.closePath();
+                ctx.stroke();
+                
+                // Disegna il propulsore se attivo
+                if (this.thrust) {
+                    ctx.beginPath();
+                    ctx.moveTo(-this.radius, -this.radius * 0.4);
+                    ctx.lineTo(-this.radius * 1.5, 0);
+                    ctx.lineTo(-this.radius, this.radius * 0.4);
+                    ctx.strokeStyle = '#fff';
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
+            }
+            
+            shoot() {
+                const currentTime = Date.now();
+                if (currentTime - lastShotTime > 200) { // Rate of fire limit
+                    bullets.push(new Bullet(
+                        this.x + Math.cos(this.angle) * this.radius,
+                        this.y + Math.sin(this.angle) * this.radius,
+                        this.angle
+                    ));
+                    lastShotTime = currentTime;
+                }
+            }
+            
+            hyperspace() {
+                // Teletrasporto casuale con un piccolo rischio di esplosione (1%)
+                if (Math.random() < 0.01) {
+                    this.explode();
+                    lives--;
+                    if (lives <= 0) {
+                        endGame();
+                    } else {
+                        this.reset();
+                        this.invincible = true;
+                        this.invincibleTimer = 120;
+                    }
+                } else {
+                    // Teletrasporto casuale
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.velX = 0;
+                    this.velY = 0;
+                    this.invincible = true;
+                    this.invincibleTimer = 60;
+                }
+            }
+            
+            explode() {
+                // Crea particelle di esplosione
+                for (let i = 0; i < 30; i++) {
+                    particles.push({
+                        x: this.x,
+                        y: this.y,
+                        velX: (Math.random() - 0.5) * 8,
+                        velY: (Math.random() - 0.5) * 8,
+                        life: 30 + Math.random() * 30,
+                        color: '#fff'
+                    });
+                }
+            }
+        }
+        
+        // Classe degli asteroidi
+        class Asteroid {
+            constructor(x, y, size, velX, velY) {
+                this.x = x || Math.random() * canvas.width;
+                this.y = y || Math.random() * canvas.height;
+                this.size = size || 3; // 3 = large, 2 = medium, 1 = small
+                this.radius = this.size * 10;
+                this.velX = velX || (Math.random() - 0.5) * 2;
+                this.velY = velY || (Math.random() - 0.5) * 2;
+                this.rotation = (Math.random() - 0.5) * 0.05;
+                this.angle = Math.random() * Math.PI * 2;
+                this.vertices = Math.floor(Math.random() * 5) + 7;
+                this.offsets = [];
+                
+                // Crea una forma irregolare
+                for (let i = 0; i < this.vertices; i++) {
+                    this.offsets.push(Math.random() * 0.4 + 0.8);
+                }
+            }
+            
+            update() {
+                this.x += this.velX;
+                this.y += this.velY;
+                this.angle += this.rotation;
+                
+                // Gestione bordi (wrap-around)
+                if (this.x < -this.radius) this.x = canvas.width + this.radius;
+                if (this.x > canvas.width + this.radius) this.x = -this.radius;
+                if (this.y < -this.radius) this.y = canvas.height + this.radius;
+                if (this.y > canvas.height + this.radius) this.y = -this.radius;
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                
+                // Disegna l'asteroide poligonale
+                ctx.beginPath();
+                for (let i = 0; i < this.vertices; i++) {
+                    const angle = (i / this.vertices) * Math.PI * 2;
+                    const radius = this.radius * this.offsets[i];
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.closePath();
+                ctx.stroke();
+                
+                ctx.restore();
+            }
+            
+            split() {
+                const newAsteroids = [];
+                if (this.size > 1) {
+                    for (let i = 0; i < 2; i++) {
+                        newAsteroids.push(new Asteroid(
+                            this.x, 
+                            this.y, 
+                            this.size - 1,
+                            this.velX * 1.5 + (Math.random() - 0.5),
+                            this.velY * 1.5 + (Math.random() - 0.5)
+                        ));
+                    }
+                }
+                
+                // Aggiungi punteggio
+                if (this.size === 3) score += 20;
+                else if (this.size === 2) score += 50;
+                else if (this.size === 1) score += 100;
+                
+                // Crea particelle di esplosione
+                for (let i = 0; i < 15; i++) {
+                    particles.push({
+                        x: this.x,
+                        y: this.y,
+                        velX: (Math.random() - 0.5) * 6,
+                        velY: (Math.random() - 0.5) * 6,
+                        life: 20 + Math.random() * 20,
+                        color: '#fff'
+                    });
+                }
+                
+                return newAsteroids;
+            }
+        }
+        
+        // Classe dei proiettili
+        class Bullet {
+            constructor(x, y, angle) {
+                this.x = x;
+                this.y = y;
+                this.velX = Math.cos(angle) * 8;
+                this.velY = Math.sin(angle) * 8;
+                this.radius = 2;
+                this.life = 60; // Durata del proiettile in frame
+            }
+            
+            update() {
+                this.x += this.velX;
+                this.y += this.velY;
+                this.life--;
+                
+                // Gestione bordi (wrap-around)
+                if (this.x < -this.radius) this.x = canvas.width + this.radius;
+                if (this.x > canvas.width + this.radius) this.x = -this.radius;
+                if (this.y < -this.radius) this.y = canvas.height + this.radius;
+                if (this.y > canvas.height + this.radius) this.y = -this.radius;
+            }
+            
+            draw() {
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // Classe degli UFO
+        class UFO {
+            constructor(isLarge) {
+                this.isLarge = isLarge || Math.random() > 0.5;
+                this.radius = this.isLarge ? 20 : 10;
+                
+                this.x = Math.random() > 0.5 ? -this.radius : canvas.width + this.radius;
+                this.y = Math.random() * canvas.height;
+                this.velX = (this.x > canvas.width / 2 ? -1 : 1) * (this.isLarge ? 1 : 2);
+                this.velY = (Math.random() - 0.5) * 0.5;
+                this.shotTimer = 0;
+                this.shotDelay = this.isLarge ? 100 : 50;
+                this.points = this.isLarge ? 200 : 1000;
+            }
+            
+            update() {
+                this.x += this.velX;
+                this.y += this.velY;
+                this.shotTimer++;
+                
+                // Rimuovi se esce dallo schermo
+                if (this.x < -this.radius * 2 || this.x > canvas.width + this.radius * 2) {
+                    return false;
+                }
+                
+                // Spara occasionalmente verso la navicella
+                if (this.shotTimer > this.shotDelay && ship && Math.random() < 0.02) {
+                    this.shoot();
+                    this.shotTimer = 0;
+                }
+                
+                return true;
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                
+                // Disegna UFO (forma a piattino)
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius * 0.5, 0, Math.PI);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(-this.radius, 0);
+                ctx.lineTo(this.radius, 0);
+                ctx.stroke();
+                
+                ctx.restore();
+            }
+            
+            shoot() {
+                if (!ship) return;
+                
+                const angleToShip = Math.atan2(ship.y - this.y, ship.x - this.x);
+                
+                bullets.push(new Bullet(
+                    this.x,
+                    this.y,
+                    angleToShip + (Math.random() - 0.5) * (this.isLarge ? 0.3 : 0.1)
+                ));
+            }
+            
+            explode() {
+                score += this.points;
+                
+                // Crea particelle di esplosione
+                for (let i = 0; i < 25; i++) {
+                    particles.push({
+                        x: this.x,
+                        y: this.y,
+                        velX: (Math.random() - 0.5) * 8,
+                        velY: (Math.random() - 0.5) * 8,
+                        life: 30 + Math.random() * 30,
+                        color: '#fff'
+                    });
+                }
+            }
+        }
+        
+        // Inizializza il gioco
+        function initGame() {
+            ship = new Ship();
+            asteroids = [];
+            bullets = [];
+            ufos = [];
+            particles = [];
+            score = 0;
+            lives = 3;
+            level = 1;
+            gameOver = false;
+            
+            // Reset controlli touch
+            isThrusting = false;
+            isRotatingLeft = false;
+            isRotatingRight = false;
+            isTouching = false;
+            isHoldingForHyperspace = false;
+            if (hyperspaceHoldTimer) {
+                clearTimeout(hyperspaceHoldTimer);
+                hyperspaceHoldTimer = null;
+            }
+            
+            // Crea asteroidi iniziali
+            for (let i = 0; i < 4 + level; i++) {
+                asteroids.push(new Asteroid());
+            }
+            
+            gameState.style.display = 'none';
+            gameActive = true;
+            
+            // Avvia il game loop
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Controlla le collisioni
+        function checkCollisions() {
+            // Collisioni tra proiettili e asteroidi
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                for (let j = asteroids.length - 1; j >= 0; j--) {
+                    const dx = bullets[i].x - asteroids[j].x;
+                    const dy = bullets[i].y - asteroids[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < bullets[i].radius + asteroids[j].radius) {
+                        // Rimuovi il proiettile
+                        bullets.splice(i, 1);
+                        
+                        // Divide l'asteroide e aggiungi i nuovi asteroidi
+                        const newAsteroids = asteroids[j].split();
+                        asteroids.splice(j, 1);
+                        asteroids.push(...newAsteroids);
+                        
+                        break;
+                    }
+                }
+            }
+            
+            // Collisioni tra proiettili e UFO
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                for (let j = ufos.length - 1; j >= 0; j--) {
+                    const dx = bullets[i].x - ufos[j].x;
+                    const dy = bullets[i].y - ufos[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < bullets[i].radius + ufos[j].radius) {
+                        // Rimuovi il proiettile
+                        bullets.splice(i, 1);
+                        
+                        // Distruggi l'UFO
+                        ufos[j].explode();
+                        ufos.splice(j, 1);
+                        
+                        break;
+                    }
+                }
+            }
+            
+            // Collisioni tra navicella e asteroidi
+            if (ship && !ship.invincible) {
+                for (let i = asteroids.length - 1; i >= 0; i--) {
+                    const dx = ship.x - asteroids[i].x;
+                    const dy = ship.y - asteroids[i].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < ship.radius + asteroids[i].radius) {
+                        // Colpita! Distruggi la navicella
+                        ship.explode();
+                        lives--;
+                        
+                        if (lives <= 0) {
+                            endGame();
+                        } else {
+                            // Respaw della navicella
+                            ship.reset();
+                            ship.invincible = true;
+                            ship.invincibleTimer = 120; // 2 secondi a 60fps
+                        }
+                        
+                        // Divide l'asteroide che ha causato la collisione
+                        const newAsteroids = asteroids[i].split();
+                        asteroids.splice(i, 1);
+                        asteroids.push(...newAsteroids);
+                        
+                        break; // Processa solo una collisione per frame
+                    }
+                }
+            }
+            
+            // Collisioni tra navicella e UFO
+            if (ship && !ship.invincible) {
+                for (let i = ufos.length - 1; i >= 0; i--) {
+                    const dx = ship.x - ufos[i].x;
+                    const dy = ship.y - ufos[i].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < ship.radius + ufos[i].radius) {
+                        // Distruggi la navicella
+                        ship.explode();
+                        lives--;
+                        
+                        if (lives <= 0) {
+                            endGame();
+                        } else {
+                            // Respaw della navicella
+                            ship.reset();
+                            ship.invincible = true;
+                            ship.invincibleTimer = 120;
+                        }
+                        
+                        // Distruggi l'UFO
+                        ufos[i].explode();
+                        ufos.splice(i, 1);
+                        
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Gestisce il passaggio di livello
+        function checkLevelComplete() {
+            if (asteroids.length === 0) {
+                level++;
+                
+                // Crea nuovi asteroidi per il nuovo livello
+                for (let i = 0; i < 4 + level; i++) {
+                    asteroids.push(new Asteroid());
+                }
+                
+                // Resetta la posizione della navicella
+                ship.x = canvas.width / 2;
+                ship.y = canvas.height / 2;
+                ship.velX = 0;
+                ship.velY = 0;
+                
+                // Rimuovi tutti i proiettili e UFO
+                bullets = [];
+                ufos = [];
+            }
+        }
+        
+        // Termina il gioco
+        function endGame() {
+            gameActive = false;
+            gameOver = true;
+            
+            // Disattiva tutti i controlli
+            isThrusting = false;
+            isRotatingLeft = false;
+            isRotatingRight = false;
+            isTouching = false;
+            isHoldingForHyperspace = false;
+            if (hyperspaceHoldTimer) {
+                clearTimeout(hyperspaceHoldTimer);
+                hyperspaceHoldTimer = null;
+            }
+            
+            gameState.innerHTML = `
+                <h2>Asteroids</h2>
+                <p>GAME OVER</p>
+                <p>Final score: ${score}</p>
+                <p>Level reached: ${level}</p>
+                <button id="restartBtn" class="game-btn">PLAY AGAIN</button>
+            `;
+            gameState.style.display = 'flex';
+            
+            // Aggiungi event listener al pulsante di riavvio
+            setTimeout(() => {
+                const restartBtn = document.getElementById('restartBtn');
+                restartBtn.addEventListener('click', initGame);
+                restartBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    initGame();
+                });
+            }, 100);
+        }
+        
+        // Disegna l'interfaccia utente
+        function drawUI() {
+            // Disegna il punteggio
+            ctx.fillStyle = '#fff';
+            ctx.font = '20px Courier New';
+            ctx.textAlign = 'left';
+            ctx.fillText(`SCORE: ${score}`, 20, 30);
+            
+            // Disegna le vite
+            ctx.fillText(`SHIPS: ${lives}`, 20, 60);
+            
+            // Disegna il livello
+            ctx.fillText(`LEVEL: ${level}`, 20, 90);
+        }
+        
+        // Gestione input touch - Nuovo sistema di comandi
+        function handleTouchStart(e) {
+            e.preventDefault();
+            if (!gameActive || !ship) return;
+            
+            isTouching = true;
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            touchStartX = touch.clientX - rect.left;
+            touchStartY = touch.clientY - rect.top;
+            
+            // Avvia il timer per l'iperspazio (press and hold)
+            isHoldingForHyperspace = true;
+            hyperspaceHoldTimer = setTimeout(() => {
+                if (isHoldingForHyperspace && gameActive && ship) {
+                    ship.hyperspace();
+                    isHoldingForHyperspace = false;
+                }
+            }, HYPERSPACE_HOLD_TIME);
+        }
+        
+        function handleTouchMove(e) {
+            e.preventDefault();
+            if (!isTouching || !gameActive || !ship) return;
+            
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            touchEndX = touch.clientX - rect.left;
+            touchEndY = touch.clientY - rect.top;
+            
+            const dx = touchEndX - touchStartX;
+            const dy = touchEndY - touchStartY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // Se l'utente sta muovendo il dito, annulla l'iperspazio
+            if (distance > 10 && isHoldingForHyperspace) {
+                clearTimeout(hyperspaceHoldTimer);
+                isHoldingForHyperspace = false;
+            }
+            
+            // Reset dei controlli precedenti
+            isThrusting = false;
+            isRotatingLeft = false;
+            isRotatingRight = false;
+            
+            // Determinazione della direzione
+            const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+            
+            if (dx > 0 && Math.abs(dy) < Math.abs(dx) * 0.5) {
+                // Swipe a destra
+                isRotatingRight = true;
+            } else if (dx < 0 && Math.abs(dy) < Math.abs(dx) * 0.5) {
+                // Swipe a sinistra
+                isRotatingLeft = true;
+            } else if (dy < 0 && Math.abs(dx) < Math.abs(dy) * 0.5) {
+                // Swipe verso l'alto - accelerare
+                isThrusting = true;
+            }
+        }
+        
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            
+            // Se non è stato attivato l'iperspazio e non c'è stato uno swipe, spara
+            if (isHoldingForHyperspace && !isThrusting && !isRotatingLeft && !isRotatingRight) {
+                clearTimeout(hyperspaceHoldTimer);
+                // Tocco rapido - spara
+                if (gameActive && ship) {
+                    ship.shoot();
+                }
+            }
+            
+            // Reset
+            isTouching = false;
+            isThrusting = false;
+            isRotatingLeft = false;
+            isRotatingRight = false;
+            isHoldingForHyperspace = false;
+            if (hyperspaceHoldTimer) {
+                clearTimeout(hyperspaceHoldTimer);
+                hyperspaceHoldTimer = null;
+            }
+        }
+        
+        // Game loop principale
+        function gameLoop() {
+            if (!gameActive) return;
+            
+            // Aggiorna dimensioni canvas se necessario
+            resizeCanvas();
+            
+            // Pulisci il canvas con una leggera trasparenza per l'effetto scia
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Aggiorna e disegna tutti gli oggetti
+            if (ship) {
+                ship.update();
+                ship.draw();
+            }
+            
+            // Aggiorna e disegna asteroidi
+            for (let i = 0; i < asteroids.length; i++) {
+                asteroids[i].update();
+                asteroids[i].draw();
+            }
+            
+            // Aggiorna e disegna proiettili
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                bullets[i].update();
+                bullets[i].draw();
+                
+                // Rimuovi proiettili scaduti
+                if (bullets[i].life <= 0) {
+                    bullets.splice(i, 1);
+                }
+            }
+            
+            // Aggiorna e disegna UFO
+            for (let i = ufos.length - 1; i >= 0; i--) {
+                if (!ufos[i].update()) {
+                    ufos.splice(i, 1);
+                } else {
+                    ufos[i].draw();
+                }
+            }
+            
+            // Aggiorna e disegna particelle
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].x += particles[i].velX;
+                particles[i].y += particles[i].velY;
+                particles[i].life--;
+                
+                // Disegna particelle
+                ctx.fillStyle = particles[i].color;
+                ctx.beginPath();
+                ctx.arc(particles[i].x, particles[i].y, 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Rimuovi particelle scadute
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+            
+            // Disegna l'interfaccia utente
+            drawUI();
+            
+            // Controlla collisioni
+            checkCollisions();
+            
+            // Controlla completamento livello
+            checkLevelComplete();
+            
+            // Gestione spawn UFO
+            ufoSpawnTimer++;
+            if (ufoSpawnTimer > 300 && ufos.length < 1 + Math.floor(level / 3) && Math.random() < 0.01) {
+                ufos.push(new UFO());
+                ufoSpawnTimer = 0;
+            }
+            
+            // Continua il game loop
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Inizializza quando la pagina è caricata
+        window.addEventListener('load', () => {
+            resizeCanvas();
+            
+            // Mostra la schermata iniziale
+            gameState.style.display = 'flex';
+            
+            // Avvia il gioco quando si clicca su "START GAME"
+            startBtn.addEventListener('click', initGame);
+            startBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                initGame();
+            });
+            
+            // Gestione input touch
+            canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+            canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+            canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+            
+            // Ridimensiona il canvas quando la finestra cambia dimensione
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Previeni il comportamento di scorrimento della pagina sui dispositivi mobili
+            document.addEventListener('touchmove', (e) => {
+                if (gameActive) e.preventDefault();
+            }, { passive: false });
+        });
+        
+        // Disabilita il menu contestuale sul canvas
+        canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+    </script>
+</body>
+</html>
