@@ -194,24 +194,55 @@
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                 ctx.fill();
+                
+                // Disegna bordo più spesso quando attivo
+                if (this.active) {
+                    ctx.lineWidth = 3;
+                }
                 ctx.stroke();
                 
                 // Disegna il simbolo del pulsante
                 ctx.fillStyle = this.textColor;
-                ctx.font = 'bold ' + (this.radius * 0.8) + 'px Arial';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 
-                let symbol = '';
-                switch(this.type) {
-                    case 'left': symbol = '←'; break;
-                    case 'right': symbol = '→'; break;
-                    case 'up': symbol = '↑'; break;
-                    case 'fire': symbol = 'S'; break;
-                    case 'hyperspace': symbol = 'H'; break;
+                // Disegno speciale per le frecce triangolari
+                if (this.type === 'left' || this.type === 'right' || this.type === 'up') {
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    
+                    // Imposta colore e dimensione del triangolo
+                    ctx.fillStyle = this.textColor;
+                    const triangleSize = this.radius * 0.5; // Dimensione del triangolo
+                    
+                    ctx.beginPath();
+                    
+                    if (this.type === 'up') {
+                        // Triangolo che punta verso l'alto
+                        ctx.moveTo(0, -triangleSize);
+                        ctx.lineTo(-triangleSize, triangleSize * 0.5);
+                        ctx.lineTo(triangleSize, triangleSize * 0.5);
+                    } else if (this.type === 'left') {
+                        // Triangolo che punta a sinistra
+                        ctx.moveTo(-triangleSize, 0);
+                        ctx.lineTo(triangleSize * 0.5, -triangleSize);
+                        ctx.lineTo(triangleSize * 0.5, triangleSize);
+                    } else if (this.type === 'right') {
+                        // Triangolo che punta a destra
+                        ctx.moveTo(triangleSize, 0);
+                        ctx.lineTo(-triangleSize * 0.5, -triangleSize);
+                        ctx.lineTo(-triangleSize * 0.5, triangleSize);
+                    }
+                    
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+                } else {
+                    // Disegna testo per i pulsanti fire (S) e hyperspace (H)
+                    ctx.font = `bold ${this.radius * 0.8}px Arial`;
+                    let symbol = this.type === 'fire' ? 'S' : 'H';
+                    ctx.fillText(symbol, this.x, this.y);
                 }
-                
-                ctx.fillText(symbol, this.x, this.y);
                 
                 ctx.restore();
             }
@@ -230,55 +261,58 @@
             }
         }
         
-        // Inizializza i pulsanti
+        // Inizializza i pulsanti con le nuove dimensioni e posizioni
         function initButtons() {
             buttons = [];
-            const buttonRadius = 35;
-            const margin = 30;
-            const bottom = canvas.height - margin - buttonRadius;
             
-            // Tasto S (SPARA) a sinistra
+            // Impostazioni dimensioni pulsanti
+            const smallButtonRadius = 25;  // Più piccolo per i pulsanti S/H
+            const arrowButtonRadius = 30;  // Per le frecce triangolari
+            const margin = 25;             // Margine dai bordi dello schermo
+            const controlAreaTop = canvas.height - CONTROL_ZONE_HEIGHT;
+            
+            // Posiziona pulsante S (SPARA) - in basso a sinistra
             buttons.push(new GameButton(
-                margin + buttonRadius,
-                bottom,
-                buttonRadius,
+                margin + smallButtonRadius,
+                canvas.height - margin - smallButtonRadius,
+                smallButtonRadius,
                 'fire'
             ));
             
-            // Tasto H (IPERSPAZIO) a destra
+            // Posiziona pulsante H (IPERSPAZIO) - in basso a destra
             buttons.push(new GameButton(
-                canvas.width - margin - buttonRadius,
-                bottom,
-                buttonRadius,
+                canvas.width - margin - smallButtonRadius,
+                canvas.height - margin - smallButtonRadius,
+                smallButtonRadius,
                 'hyperspace'
             ));
             
-            // Frecce al centro (triangolo)
+            // Posiziona pulsanti frecce in layout triangolare centrato
             const centerX = canvas.width / 2;
-            const centerY = bottom;
-            const arrowRadius = buttonRadius * 0.7;
+            const centerY = controlAreaTop + (CONTROL_ZONE_HEIGHT / 2);
+            const arrowSpacing = 60; // Distanza tra i centri delle frecce
             
-            // Freccia su (centro in alto)
+            // Freccia su (centrata sopra)
             buttons.push(new GameButton(
                 centerX,
-                centerY - buttonRadius,
-                arrowRadius,
+                centerY - arrowSpacing,
+                arrowButtonRadius,
                 'up'
             ));
             
-            // Freccia sinistra (centro sinistra)
+            // Freccia sinistra (a sinistra del centro)
             buttons.push(new GameButton(
-                centerX - buttonRadius,
+                centerX - arrowSpacing,
                 centerY,
-                arrowRadius,
+                arrowButtonRadius,
                 'left'
             ));
             
-            // Freccia destra (centro destra)
+            // Freccia destra (a destra del centro)
             buttons.push(new GameButton(
-                centerX + buttonRadius,
+                centerX + arrowSpacing,
                 centerY,
-                arrowRadius,
+                arrowButtonRadius,
                 'right'
             ));
         }
@@ -291,7 +325,8 @@
             
             reset() {
                 this.x = canvas.width / 2;
-                this.y = (canvas.height - CONTROL_ZONE_HEIGHT) / 2;
+                // Sposta la navicella più in alto, lontano dalla zona controlli
+                this.y = (canvas.height - CONTROL_ZONE_HEIGHT) * 0.4;
                 this.radius = 15;
                 this.angle = -Math.PI / 2; // Punta verso l'alto
                 this.rotation = 0;
@@ -308,6 +343,24 @@
             }
             
             update() {
+                // Gestione invincibilità
+                if (this.invincible) {
+                    this.invincibleTimer--;
+                    this.blinkTimer++;
+                    
+                    // Lampeggio durante l'invincibilità
+                    if (this.blinkTimer % 10 < 5) {
+                        this.visible = true;
+                    } else {
+                        this.visible = false;
+                    }
+                    
+                    if (this.invincibleTimer <= 0) {
+                        this.invincible = false;
+                        this.visible = true;
+                    }
+                }
+                
                 // Rotazione dai controlli
                 this.rotation = 0;
                 if (isRotatingLeft) this.rotation -= this.rotationSpeed;
@@ -552,10 +605,13 @@
             constructor(isLarge) {
                 this.isLarge = isLarge || Math.random() > 0.5;
                 this.radius = this.isLarge ? 20 : 10;
-                // Genera UFO evitando la zona controlli
-                const safeY = Math.random() * (canvas.height - CONTROL_ZONE_HEIGHT - this.radius * 2) + this.radius;
+                
+                // Garantisce che gli UFO spawnino sopra la zona controlli
+                const minSpawnY = this.radius;
+                const maxSpawnY = canvas.height - CONTROL_ZONE_HEIGHT - this.radius;
+                this.y = Math.random() * (maxSpawnY - minSpawnY) + minSpawnY;
+                
                 this.x = Math.random() > 0.5 ? -this.radius : canvas.width + this.radius;
-                this.y = safeY;
                 this.velX = (this.x > canvas.width / 2 ? -1 : 1) * (this.isLarge ? 1 : 2);
                 this.velY = (Math.random() - 0.5) * 0.5;
                 this.shotTimer = 0;
@@ -666,7 +722,7 @@
             requestAnimationFrame(gameLoop);
         }
         
-        // Controlla le collisioni
+        // Controlla le collisioni - VERSIONE CORRETTA
         function checkCollisions() {
             // Collisioni tra proiettili e asteroidi
             for (let i = bullets.length - 1; i >= 0; i--) {
@@ -709,7 +765,7 @@
                 }
             }
             
-            // Collisioni tra navicella e asteroidi
+            // ✅ COLLISIONI CORRETTE tra navicella e asteroidi
             if (ship && !ship.invincible) {
                 for (let i = asteroids.length - 1; i >= 0; i--) {
                     const dx = ship.x - asteroids[i].x;
@@ -717,7 +773,7 @@
                     const distance = Math.sqrt(dx * dx + dy * dy);
                     
                     if (distance < ship.radius + asteroids[i].radius) {
-                        // Distruggi la navicella
+                        // Colpita! Distruggi la navicella
                         ship.explode();
                         lives--;
                         
@@ -727,15 +783,15 @@
                             // Respaw della navicella
                             ship.reset();
                             ship.invincible = true;
-                            ship.invincibleTimer = 120;
+                            ship.invincibleTimer = 120; // 2 secondi a 60fps
                         }
                         
-                        // Divide l'asteroide
+                        // Divide l'asteroide che ha causato la collisione
                         const newAsteroids = asteroids[i].split();
                         asteroids.splice(i, 1);
                         asteroids.push(...newAsteroids);
                         
-                        break;
+                        break; // Processa solo una collisione per frame
                     }
                 }
             }
