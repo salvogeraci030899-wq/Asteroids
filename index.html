@@ -75,96 +75,80 @@
             left: 0;
             right: 0;
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            justify-content: space-between;
+            align-items: flex-end;
             width: 100%;
             padding: 15px;
-            gap: 15px;
             background: rgba(0, 0, 0, 0.7);
             z-index: 3;
             border-top: 1px solid #fff;
+            height: 140px;
         }
         
-        .control-row {
+        .control-circle {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.8);
+            border: 2px solid #fff;
+            color: #fff;
             display: flex;
             justify-content: center;
-            width: 100%;
-            gap: 15px;
-        }
-        
-        .control-btn {
-            background-color: #000;
-            color: #fff;
-            border: 2px solid #fff;
-            border-radius: 10px;
-            font-size: 22px;
-            padding: 18px 30px;
-            min-width: 140px;
-            text-align: center;
-            font-family: 'Courier New', monospace;
+            align-items: center;
+            font-size: 24px;
             font-weight: bold;
             cursor: pointer;
+            z-index: 5;
+            margin-bottom: 10px;
+            touch-action: manipulation;
         }
         
-        .control-btn:active {
+        .control-circle:active {
             background-color: #fff;
             color: #000;
             transform: scale(0.95);
         }
         
-        #dpad {
+        #joystickContainer {
             position: relative;
-            width: 200px;
-            height: 200px;
-            margin: 0 auto;
+            width: 160px;
+            height: 80px;
+            margin-bottom: 10px;
+            z-index: 4;
         }
         
-        .dpad-btn {
+        #joystickBase {
             position: absolute;
-            background-color: rgba(0, 0, 0, 0.8);
-            color: #fff;
+            width: 160px;
+            height: 80px;
             border: 2px solid #fff;
-            border-radius: 50%;
-            width: 70px;
-            height: 70px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
-        .dpad-btn:active {
-            background-color: #fff;
-            color: #000;
-        }
-        
-        #up {
-            top: 0;
-            left: 65px;
-        }
-        
-        #left {
-            top: 65px;
+            border-bottom: none;
+            border-radius: 80px 80px 0 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            bottom: 0;
             left: 0;
         }
         
-        #right {
-            top: 65px;
-            right: 0;
-        }
-        
-        #down {
-            bottom: 0;
-            left: 65px;
-        }
-        
-        #center {
-            top: 65px;
-            left: 65px;
-            background-color: rgba(255, 255, 255, 0.1);
+        #joystickHandle {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.3);
+            border: 2px solid #fff;
+            bottom: 15px;
+            left: 55px;
+            z-index: 6;
             pointer-events: none;
+        }
+        
+        #joystickActiveArea {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 80px 80px 0 0;
+            cursor: pointer;
+            z-index: 5;
         }
         
         #gameState {
@@ -221,7 +205,7 @@
         
         #instructions {
             position: absolute;
-            bottom: 180px;
+            bottom: 150px;
             left: 0;
             right: 0;
             padding: 10px 15px;
@@ -236,57 +220,43 @@
         }
         
         /* Rimuovi i bordi arancioni di focus su mobile */
-        .control-btn:focus, .dpad-btn:focus, #startBtn:focus {
+        .control-circle:focus, #startBtn:focus {
             outline: none;
         }
         
         /* Media queries per schermi più piccoli */
         @media (max-height: 700px) {
             #controls {
+                height: 120px;
                 padding: 10px;
-                gap: 10px;
             }
             
-            .control-btn {
-                padding: 12px 20px;
-                min-width: 120px;
-                font-size: 18px;
-            }
-            
-            #dpad {
-                width: 160px;
-                height: 160px;
-            }
-            
-            .dpad-btn {
+            .control-circle {
                 width: 60px;
                 height: 60px;
-                font-size: 22px;
+                font-size: 20px;
             }
             
-            #up {
-                left: 50px;
+            #joystickContainer {
+                width: 140px;
+                height: 70px;
             }
             
-            #left {
-                top: 50px;
+            #joystickBase {
+                width: 140px;
+                height: 70px;
+                border-radius: 70px 70px 0 0;
             }
             
-            #right {
-                top: 50px;
-            }
-            
-            #down {
-                left: 50px;
-            }
-            
-            #center {
-                top: 50px;
+            #joystickHandle {
+                width: 40px;
+                height: 40px;
+                bottom: 10px;
                 left: 50px;
             }
             
             #instructions {
-                bottom: 150px;
+                bottom: 130px;
                 font-size: 12px;
             }
             
@@ -300,10 +270,32 @@
         }
         
         @media (max-width: 600px) {
-            .control-btn {
-                padding: 15px 20px;
-                min-width: 110px;
-                font-size: 18px;
+            #controls {
+                padding: 10px;
+            }
+            
+            .control-circle {
+                width: 60px;
+                height: 60px;
+                font-size: 20px;
+            }
+            
+            #joystickContainer {
+                width: 130px;
+                height: 65px;
+            }
+            
+            #joystickBase {
+                width: 130px;
+                height: 65px;
+                border-radius: 65px 65px 0 0;
+            }
+            
+            #joystickHandle {
+                width: 35px;
+                height: 35px;
+                bottom: 8px;
+                left: 47px;
             }
             
             #instructions {
@@ -322,13 +314,36 @@
         
         @media (max-height: 500px) {
             #controls {
-                position: relative;
-                background: transparent;
-                border-top: none;
+                height: 100px;
+            }
+            
+            .control-circle {
+                width: 50px;
+                height: 50px;
+                font-size: 18px;
+            }
+            
+            #joystickContainer {
+                width: 120px;
+                height: 60px;
+            }
+            
+            #joystickBase {
+                width: 120px;
+                height: 60px;
+                border-radius: 60px 60px 0 0;
+            }
+            
+            #joystickHandle {
+                width: 30px;
+                height: 30px;
+                bottom: 5px;
+                left: 45px;
             }
             
             #instructions {
-                display: none;
+                bottom: 110px;
+                font-size: 11px;
             }
         }
     </style>
@@ -341,23 +356,18 @@
             <div id="livesDisplay">NAVI: 3</div>
         </div>
         <div id="instructions">
-            CONTROLLI: Usa i tasti freccia per muoverti, SPARA per sparare, IPERSPAZIO per teletrasporto casuale (con rischio). Ogni asteroide grande vale 20 punti, medio 50 punti, piccolo 100 punti. Gli UFO valgono 200 o 1000 punti.
+            CONTROLLI: Usa il joystick a semicerchio per muoverti, tocca S per sparare, H per l'iperspazio. Ogni asteroide grande vale 20 punti, medio 50 punti, piccolo 100 punti. Gli UFO valgono 200 o 1000 punti.
         </div>
         <div id="controls">
-            <div class="control-row">
-                <button class="control-btn" id="fireBtn">SPARA</button>
-                <button class="control-btn" id="hyperspaceBtn">IPERSPAZIO</button>
+            <div class="control-circle" id="hyperspaceBtn">H</div>
+            
+            <div id="joystickContainer">
+                <div id="joystickBase"></div>
+                <div id="joystickHandle"></div>
+                <div id="joystickActiveArea"></div>
             </div>
             
-            <div class="control-row">
-                <div id="dpad">
-                    <div class="dpad-btn" id="up">↑</div>
-                    <div class="dpad-btn" id="left">←</div>
-                    <div class="dpad-btn" id="center">•</div>
-                    <div class="dpad-btn" id="right">→</div>
-                    <div class="dpad-btn" id="down">↓</div>
-                </div>
-            </div>
+            <div class="control-circle" id="fireBtn">S</div>
         </div>
         
         <div id="gameState">
@@ -393,11 +403,15 @@
         let bullets = [];
         let ufos = [];
         let particles = [];
-        let keys = {};
         let ship;
         let lastShotTime = 0;
         let ufoSpawnTimer = 0;
         let gameOver = false;
+        
+        // Variabili per il joystick
+        let joystickActive = false;
+        let joystickRotation = 0;
+        let joystickThrust = false;
         
         // Classe della navicella
         class Ship {
@@ -424,8 +438,14 @@
             }
             
             update() {
+                // Rotazione dal joystick
+                this.rotation = joystickRotation;
+                
                 // Rotazione
                 this.angle += this.rotation;
+                
+                // Accelerazione dal joystick
+                this.thrust = joystickThrust;
                 
                 // Accelerazione
                 if (this.thrust) {
@@ -1029,12 +1049,10 @@
         function setupTouchControls() {
             const fireBtn = document.getElementById('fireBtn');
             const hyperspaceBtn = document.getElementById('hyperspaceBtn');
-            const upBtn = document.getElementById('up');
-            const leftBtn = document.getElementById('left');
-            const rightBtn = document.getElementById('right');
-            const downBtn = document.getElementById('down');
+            const joystickArea = document.getElementById('joystickActiveArea');
+            const joystickHandle = document.getElementById('joystickHandle');
             
-            // Tasto SPARA
+            // Tasto SPARA (cerchio destro)
             fireBtn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 if (gameActive && ship) {
@@ -1058,7 +1076,7 @@
                 }, 100);
             });
             
-            // Tasto IPERSPAZIO
+            // Tasto IPERSPAZIO (cerchio sinistro)
             hyperspaceBtn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 if (gameActive && ship) {
@@ -1074,83 +1092,108 @@
                 }, 100);
             });
             
-            // Controlli D-Pad
-            let activeRotation = 0;
-            let activeThrust = false;
+            // Joystick a semicerchio
+            const joystickContainer = document.getElementById('joystickContainer');
+            const joystickRect = joystickContainer.getBoundingClientRect();
             
-            function handleDPad(action, start) {
-                if (!gameActive || !ship) return;
-                
-                switch(action) {
-                    case 'rotateLeft':
-                        activeRotation = start ? -ship.rotationSpeed : 0;
-                        break;
-                    case 'rotateRight':
-                        activeRotation = start ? ship.rotationSpeed : 0;
-                        break;
-                    case 'thrust':
-                        activeThrust = start;
-                        break;
-                }
-                
-                ship.rotation = activeRotation;
-                ship.thrust = activeThrust;
+            // Calcola il centro e il raggio del joystick
+            const joystickCenterX = joystickRect.left + joystickRect.width / 2;
+            const joystickCenterY = joystickRect.top + joystickRect.height;
+            const joystickRadius = joystickRect.width / 2;
+            
+            // Gestione del joystick
+            function handleJoystickStart(e) {
+                e.preventDefault();
+                joystickActive = true;
+                updateJoystick(e.touches[0]);
             }
             
-            // Assegna eventi touch ai tasti D-Pad
-            upBtn.addEventListener('touchstart', (e) => {
+            function handleJoystickMove(e) {
+                if (!joystickActive) return;
                 e.preventDefault();
-                handleDPad('thrust', true);
-                upBtn.style.backgroundColor = '#fff';
-                upBtn.style.color = '#000';
-            });
+                updateJoystick(e.touches[0]);
+            }
             
-            upBtn.addEventListener('touchend', (e) => {
+            function handleJoystickEnd(e) {
                 e.preventDefault();
-                handleDPad('thrust', false);
-                upBtn.style.backgroundColor = '';
-                upBtn.style.color = '';
-            });
+                joystickActive = false;
+                joystickRotation = 0;
+                joystickThrust = false;
+                
+                // Riporta il joystick alla posizione centrale
+                joystickHandle.style.left = '55px';
+                joystickHandle.style.bottom = '15px';
+            }
             
-            leftBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                handleDPad('rotateLeft', true);
-                leftBtn.style.backgroundColor = '#fff';
-                leftBtn.style.color = '#000';
-            });
+            function updateJoystick(touch) {
+                const touchX = touch.clientX;
+                const touchY = touch.clientY;
+                
+                // Calcola la distanza dal centro del joystick
+                const dx = touchX - joystickCenterX;
+                const dy = touchY - joystickCenterY;
+                
+                // Calcola la distanza e l'angolo
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                let angle = Math.atan2(dy, dx);
+                
+                // Limita la distanza al raggio del joystick
+                const limitedDistance = Math.min(distance, joystickRadius);
+                
+                // Calcola la posizione limitata
+                const limitedX = Math.cos(angle) * limitedDistance;
+                const limitedY = Math.sin(angle) * limitedDistance;
+                
+                // Aggiorna la posizione visiva del joystick
+                const joystickX = (joystickRect.width / 2) + limitedX - 25;
+                const joystickY = joystickRect.height + limitedY - 25;
+                
+                joystickHandle.style.left = `${joystickX}px`;
+                joystickHandle.style.bottom = `${joystickY}px`;
+                
+                // Determina l'azione in base all'angolo
+                // Angolo di 0° a destra, 90° in basso, 180° a sinistra, -90° in alto
+                
+                // Normalizza l'angolo tra 0 e 360 gradi
+                if (angle < 0) angle += 2 * Math.PI;
+                
+                // Se il tocco è nella metà superiore del semicerchio (tra 0 e 180 gradi)
+                if (angle > Math.PI) {
+                    // Metà sinistra: rotazione a sinistra
+                    if (angle > Math.PI && angle < (3 * Math.PI) / 2) {
+                        joystickRotation = -ship.rotationSpeed;
+                        joystickThrust = false;
+                    }
+                    // Metà destra: rotazione a destra
+                    else {
+                        joystickRotation = ship.rotationSpeed;
+                        joystickThrust = false;
+                    }
+                } else {
+                    // Parte superiore: accelerazione
+                    joystickRotation = 0;
+                    joystickThrust = true;
+                }
+                
+                // Regola l'intensità in base alla distanza dal centro
+                const intensity = limitedDistance / joystickRadius;
+                if (joystickThrust) {
+                    ship.thrustPower = 0.1 * intensity;
+                }
+            }
             
-            leftBtn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                handleDPad('rotateLeft', false);
-                leftBtn.style.backgroundColor = '';
-                leftBtn.style.color = '';
-            });
-            
-            rightBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                handleDPad('rotateRight', true);
-                rightBtn.style.backgroundColor = '#fff';
-                rightBtn.style.color = '#000';
-            });
-            
-            rightBtn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                handleDPad('rotateRight', false);
-                rightBtn.style.backgroundColor = '';
-                rightBtn.style.color = '';
-            });
+            // Aggiungi event listeners per il joystick
+            joystickArea.addEventListener('touchstart', handleJoystickStart);
+            joystickArea.addEventListener('touchmove', handleJoystickMove);
+            joystickArea.addEventListener('touchend', handleJoystickEnd);
             
             // Previeni il comportamento predefinito del touch per evitare lo zoom
             document.addEventListener('touchmove', (e) => {
-                if (e.target.classList.contains('control-btn') || 
-                    e.target.classList.contains('dpad-btn')) {
+                if (e.target.classList.contains('control-circle') || 
+                    e.target.id === 'joystickActiveArea') {
                     e.preventDefault();
                 }
             }, { passive: false });
-            
-            // Disabilita il tasto down (non utilizzato in Asteroids)
-            downBtn.style.opacity = '0.3';
-            downBtn.style.pointerEvents = 'none';
         }
         
         // Inizializza quando la pagina è caricata
