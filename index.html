@@ -97,6 +97,10 @@
             display: block;
             touch-action: none;
             transition: background-color 0.3s;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-crisp-edges;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
         }
         
         #gameState {
@@ -153,11 +157,6 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         
-        .game-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-        }
-        
         .game-btn:active {
             background-color: var(--button-text);
             color: var(--button-bg);
@@ -166,36 +165,6 @@
         
         .game-btn:focus {
             outline: none;
-            box-shadow: 0 0 0 3px var(--accent-secondary);
-        }
-        
-        .theme-indicator {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 14px;
-            color: var(--text-secondary);
-            padding: 5px 10px;
-            border: 1px solid var(--ui-border);
-            border-radius: 5px;
-            background-color: var(--bg-secondary);
-            z-index: 5;
-            transition: all 0.3s;
-        }
-        
-        .controls-hint {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            font-size: 14px;
-            color: var(--text-secondary);
-            max-width: 200px;
-            background-color: var(--bg-secondary);
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid var(--ui-border);
-            z-index: 5;
-            transition: all 0.3s;
         }
         
         @media (max-width: 600px) {
@@ -205,25 +174,6 @@
             
             #gameState p {
                 font-size: 18px;
-            }
-            
-            .theme-indicator {
-                top: 10px;
-                right: 10px;
-                font-size: 12px;
-            }
-            
-            .controls-hint {
-                bottom: 10px;
-                left: 10px;
-                font-size: 12px;
-                max-width: 150px;
-            }
-        }
-        
-        @media (max-width: 400px) {
-            .controls-hint {
-                display: none;
             }
         }
     </style>
@@ -239,58 +189,76 @@
             <p>Each asteroid splits into smaller pieces</p>
             <button id="startBtn" class="game-btn">START GAME</button>
         </div>
-        
-        <div class="theme-indicator" id="themeIndicator">
-            Theme: <span id="themeValue">Dark</span>
-        </div>
-        
-        <div class="controls-hint" id="controlsHint">
-            <strong>Controls:</strong><br>
-            • Swipe up: Thrust<br>
-            • Swipe left/right: Rotate<br>
-            • Tap: Shoot<br>
-            • Hold: Hyperspace
-        </div>
     </div>
 
     <script>
         // Inizializzazione del canvas
         const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: false });
         const gameState = document.getElementById('gameState');
         const startBtn = document.getElementById('startBtn');
-        const themeIndicator = document.getElementById('themeIndicator');
-        const themeValue = document.getElementById('themeValue');
-        const controlsHint = document.getElementById('controlsHint');
         
-        // Imposta le dimensioni del canvas a schermo intero
+        // Configurazione HD
+        let devicePixelRatio = window.devicePixelRatio || 1;
+        let backingStoreRatio = ctx.webkitBackingStorePixelRatio ||
+                                ctx.mozBackingStorePixelRatio ||
+                                ctx.msBackingStorePixelRatio ||
+                                ctx.oBackingStorePixelRatio ||
+                                ctx.backingStorePixelRatio || 1;
+        let ratio = devicePixelRatio / backingStoreRatio;
+        
+        // Imposta le dimensioni del canvas in HD
         function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            
+            // Imposta le dimensioni CSS
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+            
+            // Imposta le dimensioni effettive del canvas con il ratio HD
+            canvas.width = width * ratio;
+            canvas.height = height * ratio;
+            
+            // Scala il contesto per mantenere le proporzioni
+            ctx.scale(ratio, ratio);
         }
         
         // Rileva tema sistema
         function detectSystemTheme() {
-            const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            return isDarkMode ? 'dark' : 'light';
+            return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         }
         
-        // Aggiorna indicatore tema
-        function updateThemeIndicator() {
-            const theme = detectSystemTheme();
-            themeValue.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+        // Colori dinamici basati sul tema
+        let gameColors = {
+            ship: '#fff',
+            asteroid: '#fff',
+            bullet: '#fff',
+            ufo: '#fff',
+            particle: '#fff',
+            explosion: '#fff',
+            thruster: '#fff',
+            text: '#fff',
+            background: '#000'
+        };
+        
+        // Aggiorna i colori del canvas in base al tema
+        function updateCanvasColors() {
+            const rootStyles = getComputedStyle(document.documentElement);
+            const isDark = detectSystemTheme() === 'dark';
             
-            // Aggiorna colori CSS personalizzati per il canvas
-            updateCanvasColors();
-            
-            // Aggiorna stili elementi UI
-            themeIndicator.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary');
-            themeIndicator.style.color = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary');
-            themeIndicator.style.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--ui-border');
-            
-            controlsHint.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary');
-            controlsHint.style.color = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary');
-            controlsHint.style.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--ui-border');
+            gameColors = {
+                ship: rootStyles.getPropertyValue('--ship-color').trim(),
+                asteroid: rootStyles.getPropertyValue('--asteroid-color').trim(),
+                bullet: rootStyles.getPropertyValue('--bullet-color').trim(),
+                ufo: rootStyles.getPropertyValue('--ufo-color').trim(),
+                particle: rootStyles.getPropertyValue('--particle-color').trim(),
+                explosion: rootStyles.getPropertyValue('--explosion-color').trim(),
+                thruster: rootStyles.getPropertyValue('--thruster-color').trim(),
+                text: rootStyles.getPropertyValue('--text-primary').trim(),
+                background: rootStyles.getPropertyValue('--bg-primary').trim(),
+                trail: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
+            };
         }
         
         // Variabili di gioco
@@ -324,41 +292,6 @@
         let isHoldingForHyperspace = false;
         const HYPERSPACE_HOLD_TIME = 1000; // 1 secondo per attivare l'iperspazio
         
-        // Colori dinamici basati sul tema
-        let gameColors = {
-            ship: '#fff',
-            asteroid: '#fff',
-            bullet: '#fff',
-            ufo: '#fff',
-            particle: '#fff',
-            explosion: '#fff',
-            thruster: '#fff',
-            text: '#fff',
-            background: '#000'
-        };
-        
-        // Aggiorna i colori del canvas in base al tema
-        function updateCanvasColors() {
-            const rootStyles = getComputedStyle(document.documentElement);
-            
-            gameColors = {
-                ship: rootStyles.getPropertyValue('--ship-color').trim(),
-                asteroid: rootStyles.getPropertyValue('--asteroid-color').trim(),
-                bullet: rootStyles.getPropertyValue('--bullet-color').trim(),
-                ufo: rootStyles.getPropertyValue('--ufo-color').trim(),
-                particle: rootStyles.getPropertyValue('--particle-color').trim(),
-                explosion: rootStyles.getPropertyValue('--explosion-color').trim(),
-                thruster: rootStyles.getPropertyValue('--thruster-color').trim(),
-                text: rootStyles.getPropertyValue('--text-primary').trim(),
-                background: rootStyles.getPropertyValue('--bg-primary').trim(),
-                trail: rootStyles.getPropertyValue('--bg-primary').trim()
-            };
-            
-            // Per l'effetto scia, usiamo il colore di sfondo con opacità
-            const isDark = detectSystemTheme() === 'dark';
-            gameColors.trail = isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)';
-        }
-        
         // Classe della navicella
         class Ship {
             constructor() {
@@ -366,8 +299,8 @@
             }
             
             reset() {
-                this.x = canvas.width / 2;
-                this.y = canvas.height / 2;
+                this.x = window.innerWidth / 2;
+                this.y = window.innerHeight / 2;
                 this.radius = 15;
                 this.angle = -Math.PI / 2; // Punta verso l'alto
                 this.rotation = 0;
@@ -440,10 +373,10 @@
                 this.y += this.velY;
                 
                 // Gestione bordi (wrap-around)
-                if (this.x < -this.radius) this.x = canvas.width + this.radius;
-                if (this.x > canvas.width + this.radius) this.x = -this.radius;
-                if (this.y < -this.radius) this.y = canvas.height + this.radius;
-                if (this.y > canvas.height + this.radius) this.y = -this.radius;
+                if (this.x < -this.radius) this.x = window.innerWidth + this.radius;
+                if (this.x > window.innerWidth + this.radius) this.x = -this.radius;
+                if (this.y < -this.radius) this.y = window.innerHeight + this.radius;
+                if (this.y > window.innerHeight + this.radius) this.y = -this.radius;
             }
             
             draw() {
@@ -453,7 +386,7 @@
                 ctx.translate(this.x, this.y);
                 ctx.rotate(this.angle);
                 ctx.strokeStyle = gameColors.ship;
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 2 * (1/ratio); // Compensa il ratio HD per linee nitide
                 
                 // Disegna la navicella (triangolo)
                 ctx.beginPath();
@@ -502,8 +435,8 @@
                     }
                 } else {
                     // Teletrasporto casuale
-                    this.x = Math.random() * canvas.width;
-                    this.y = Math.random() * canvas.height;
+                    this.x = Math.random() * window.innerWidth;
+                    this.y = Math.random() * window.innerHeight;
                     this.velX = 0;
                     this.velY = 0;
                     this.invincible = true;
@@ -529,8 +462,8 @@
         // Classe degli asteroidi
         class Asteroid {
             constructor(x, y, size, velX, velY) {
-                this.x = x || Math.random() * canvas.width;
-                this.y = y || Math.random() * canvas.height;
+                this.x = x || Math.random() * window.innerWidth;
+                this.y = y || Math.random() * window.innerHeight;
                 this.size = size || 3; // 3 = large, 2 = medium, 1 = small
                 this.radius = this.size * 10;
                 this.velX = velX || (Math.random() - 0.5) * 2;
@@ -552,10 +485,10 @@
                 this.angle += this.rotation;
                 
                 // Gestione bordi (wrap-around)
-                if (this.x < -this.radius) this.x = canvas.width + this.radius;
-                if (this.x > canvas.width + this.radius) this.x = -this.radius;
-                if (this.y < -this.radius) this.y = canvas.height + this.radius;
-                if (this.y > canvas.height + this.radius) this.y = -this.radius;
+                if (this.x < -this.radius) this.x = window.innerWidth + this.radius;
+                if (this.x > window.innerWidth + this.radius) this.x = -this.radius;
+                if (this.y < -this.radius) this.y = window.innerHeight + this.radius;
+                if (this.y > window.innerHeight + this.radius) this.y = -this.radius;
             }
             
             draw() {
@@ -563,7 +496,7 @@
                 ctx.translate(this.x, this.y);
                 ctx.rotate(this.angle);
                 ctx.strokeStyle = gameColors.asteroid;
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 2 * (1/ratio); // Compensa il ratio HD per linee nitide
                 
                 // Disegna l'asteroide poligonale
                 ctx.beginPath();
@@ -637,10 +570,10 @@
                 this.life--;
                 
                 // Gestione bordi (wrap-around)
-                if (this.x < -this.radius) this.x = canvas.width + this.radius;
-                if (this.x > canvas.width + this.radius) this.x = -this.radius;
-                if (this.y < -this.radius) this.y = canvas.height + this.radius;
-                if (this.y > canvas.height + this.radius) this.y = -this.radius;
+                if (this.x < -this.radius) this.x = window.innerWidth + this.radius;
+                if (this.x > window.innerWidth + this.radius) this.x = -this.radius;
+                if (this.y < -this.radius) this.y = window.innerHeight + this.radius;
+                if (this.y > window.innerHeight + this.radius) this.y = -this.radius;
             }
             
             draw() {
@@ -657,9 +590,9 @@
                 this.isLarge = isLarge || Math.random() > 0.5;
                 this.radius = this.isLarge ? 20 : 10;
                 
-                this.x = Math.random() > 0.5 ? -this.radius : canvas.width + this.radius;
-                this.y = Math.random() * canvas.height;
-                this.velX = (this.x > canvas.width / 2 ? -1 : 1) * (this.isLarge ? 1 : 2);
+                this.x = Math.random() > 0.5 ? -this.radius : window.innerWidth + this.radius;
+                this.y = Math.random() * window.innerHeight;
+                this.velX = (this.x > window.innerWidth / 2 ? -1 : 1) * (this.isLarge ? 1 : 2);
                 this.velY = (Math.random() - 0.5) * 0.5;
                 this.shotTimer = 0;
                 this.shotDelay = this.isLarge ? 100 : 50;
@@ -672,7 +605,7 @@
                 this.shotTimer++;
                 
                 // Rimuovi se esce dallo schermo
-                if (this.x < -this.radius * 2 || this.x > canvas.width + this.radius * 2) {
+                if (this.x < -this.radius * 2 || this.x > window.innerWidth + this.radius * 2) {
                     return false;
                 }
                 
@@ -689,7 +622,7 @@
                 ctx.save();
                 ctx.translate(this.x, this.y);
                 ctx.strokeStyle = gameColors.ufo;
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 2 * (1/ratio); // Compensa il ratio HD per linee nitide
                 
                 // Disegna UFO (forma a piattino)
                 ctx.beginPath();
@@ -891,8 +824,8 @@
                 }
                 
                 // Resetta la posizione della navicella
-                ship.x = canvas.width / 2;
-                ship.y = canvas.height / 2;
+                ship.x = window.innerWidth / 2;
+                ship.y = window.innerHeight / 2;
                 ship.velX = 0;
                 ship.velY = 0;
                 
@@ -942,7 +875,7 @@
         function drawUI() {
             // Disegna il punteggio
             ctx.fillStyle = gameColors.text;
-            ctx.font = '20px Courier New';
+            ctx.font = '20px "Courier New", monospace';
             ctx.textAlign = 'left';
             ctx.fillText(`SCORE: ${score}`, 20, 30);
             
@@ -951,12 +884,6 @@
             
             // Disegna il livello
             ctx.fillText(`LEVEL: ${level}`, 20, 90);
-            
-            // Disegna il tema corrente in piccolo in basso a destra
-            ctx.font = '12px Courier New';
-            ctx.textAlign = 'right';
-            const themeName = detectSystemTheme().toUpperCase();
-            ctx.fillText(`THEME: ${themeName}`, canvas.width - 20, canvas.height - 20);
         }
         
         // Gestione input touch - Nuovo sistema di comandi
@@ -1052,7 +979,7 @@
             
             // Pulisci il canvas con una leggera trasparenza per l'effetto scia
             ctx.fillStyle = gameColors.trail;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
             
             // Aggiorna e disegna tutti gli oggetti
             if (ship) {
@@ -1127,7 +1054,7 @@
         // Inizializza quando la pagina è caricata
         window.addEventListener('load', () => {
             resizeCanvas();
-            updateThemeIndicator();
+            updateCanvasColors();
             
             // Mostra la schermata iniziale
             gameState.style.display = 'flex';
@@ -1145,11 +1072,14 @@
             canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
             
             // Ridimensiona il canvas quando la finestra cambia dimensione
-            window.addEventListener('resize', resizeCanvas);
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                updateCanvasColors();
+            });
             
             // Ascolta i cambiamenti del tema del sistema
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateThemeIndicator);
-            window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', updateThemeIndicator);
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateCanvasColors);
+            window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', updateCanvasColors);
             
             // Previeni il comportamento di scorrimento della pagina sui dispositivi mobili
             document.addEventListener('touchmove', (e) => {
