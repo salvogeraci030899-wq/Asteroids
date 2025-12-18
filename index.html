@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Asteroids 1979 - Mobile</title>
+    <title>Asteroids 1979 - Mobile Touch Controls</title>
     <style>
         * {
             margin: 0;
@@ -104,9 +104,20 @@
             transform: scale(0.98);
         }
         
-        /* Rimuovi i bordi arancioni di focus su mobile */
         #startBtn:focus {
             outline: none;
+        }
+        
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 0 20px;
+            z-index: 5;
         }
         
         @media (max-width: 600px) {
@@ -117,12 +128,21 @@
             #gameState p {
                 font-size: 18px;
             }
+            
+            #instructions {
+                font-size: 12px;
+                bottom: 10px;
+            }
         }
     </style>
 </head>
 <body>
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
+        
+        <div id="instructions">
+            <p>Tap to SHOOT | Swipe left/right to ROTATE | Swipe up to THRUST | Double-tap for HYPERSPACE</p>
+        </div>
         
         <div id="gameState">
             <h2>ASTEROIDS 1979</h2>
@@ -139,6 +159,7 @@
         const ctx = canvas.getContext('2d');
         const gameState = document.getElementById('gameState');
         const startBtn = document.getElementById('startBtn');
+        const instructions = document.getElementById('instructions');
         
         // Imposta le dimensioni del canvas a schermo intero
         function resizeCanvas() {
@@ -160,162 +181,20 @@
         let ufoSpawnTimer = 0;
         let gameOver = false;
         
-        // Variabili per i controlli
+        // Variabili per i controlli touch
         let isThrusting = false;
         let isRotatingLeft = false;
         let isRotatingRight = false;
         
-        // Variabili per i tasti (oggetti di gioco)
-        let buttons = [];
-        const CONTROL_ZONE_HEIGHT = 150; // Zona per i controlli
-        
-        // Classe dei tasti (oggetti di gioco)
-        class GameButton {
-            constructor(x, y, radius, type) {
-                this.x = x;
-                this.y = y;
-                this.radius = radius;
-                this.type = type; // 'left', 'right', 'up', 'fire', 'hyperspace'
-                this.active = false;
-                this.color = 'rgba(255, 255, 255, 0.1)';
-                this.activeColor = 'rgba(255, 255, 255, 0.3)';
-                this.borderColor = '#fff';
-                this.textColor = '#fff';
-            }
-            
-            draw() {
-                ctx.save();
-                
-                // Disegna il cerchio del pulsante
-                ctx.fillStyle = this.active ? this.activeColor : this.color;
-                ctx.strokeStyle = this.borderColor;
-                ctx.lineWidth = 2;
-                
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Disegna bordo più spesso quando attivo
-                if (this.active) {
-                    ctx.lineWidth = 3;
-                }
-                ctx.stroke();
-                
-                // Disegna il simbolo del pulsante
-                ctx.fillStyle = this.textColor;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                
-                // Disegno speciale per le frecce triangolari
-                if (this.type === 'left' || this.type === 'right' || this.type === 'up') {
-                    ctx.save();
-                    ctx.translate(this.x, this.y);
-                    
-                    // Imposta colore e dimensione del triangolo
-                    ctx.fillStyle = this.textColor;
-                    const triangleSize = this.radius * 0.5; // Dimensione del triangolo
-                    
-                    ctx.beginPath();
-                    
-                    if (this.type === 'up') {
-                        // Triangolo che punta verso l'alto
-                        ctx.moveTo(0, -triangleSize);
-                        ctx.lineTo(-triangleSize, triangleSize * 0.5);
-                        ctx.lineTo(triangleSize, triangleSize * 0.5);
-                    } else if (this.type === 'left') {
-                        // Triangolo che punta a sinistra
-                        ctx.moveTo(-triangleSize, 0);
-                        ctx.lineTo(triangleSize * 0.5, -triangleSize);
-                        ctx.lineTo(triangleSize * 0.5, triangleSize);
-                    } else if (this.type === 'right') {
-                        // Triangolo che punta a destra
-                        ctx.moveTo(triangleSize, 0);
-                        ctx.lineTo(-triangleSize * 0.5, -triangleSize);
-                        ctx.lineTo(-triangleSize * 0.5, triangleSize);
-                    }
-                    
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.restore();
-                } else {
-                    // Disegna testo per i pulsanti fire (S) e hyperspace (H)
-                    ctx.font = `bold ${this.radius * 0.8}px Arial`;
-                    let symbol = this.type === 'fire' ? 'S' : 'H';
-                    ctx.fillText(symbol, this.x, this.y);
-                }
-                
-                ctx.restore();
-            }
-            
-            containsPoint(x, y) {
-                const distance = Math.sqrt((x - this.x) ** 2 + (y - this.y) ** 2);
-                return distance <= this.radius;
-            }
-            
-            // Controlla collisione con altri oggetti di gioco
-            checkCollision(object) {
-                const dx = object.x - this.x;
-                const dy = object.y - this.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                return distance <= (object.radius + this.radius);
-            }
-        }
-        
-        // Inizializza i pulsanti con le nuove dimensioni e posizioni
-        function initButtons() {
-            buttons = [];
-            
-            // Impostazioni dimensioni pulsanti
-            const smallButtonRadius = 25;  // Più piccolo per i pulsanti S/H
-            const arrowButtonRadius = 30;  // Per le frecce triangolari
-            const margin = 25;             // Margine dai bordi dello schermo
-            const controlAreaTop = canvas.height - CONTROL_ZONE_HEIGHT;
-            
-            // Posiziona pulsante S (SPARA) - in basso a sinistra
-            buttons.push(new GameButton(
-                margin + smallButtonRadius,
-                canvas.height - margin - smallButtonRadius,
-                smallButtonRadius,
-                'fire'
-            ));
-            
-            // Posiziona pulsante H (IPERSPAZIO) - in basso a destra
-            buttons.push(new GameButton(
-                canvas.width - margin - smallButtonRadius,
-                canvas.height - margin - smallButtonRadius,
-                smallButtonRadius,
-                'hyperspace'
-            ));
-            
-            // Posiziona pulsanti frecce in layout triangolare centrato
-            const centerX = canvas.width / 2;
-            const centerY = controlAreaTop + (CONTROL_ZONE_HEIGHT / 2);
-            const arrowSpacing = 60; // Distanza tra i centri delle frecce
-            
-            // Freccia su (centrata sopra)
-            buttons.push(new GameButton(
-                centerX,
-                centerY - arrowSpacing,
-                arrowButtonRadius,
-                'up'
-            ));
-            
-            // Freccia sinistra (a sinistra del centro)
-            buttons.push(new GameButton(
-                centerX - arrowSpacing,
-                centerY,
-                arrowButtonRadius,
-                'left'
-            ));
-            
-            // Freccia destra (a destra del centro)
-            buttons.push(new GameButton(
-                centerX + arrowSpacing,
-                centerY,
-                arrowButtonRadius,
-                'right'
-            ));
-        }
+        // Variabili per gesture recognition
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+        let isTouching = false;
+        let lastTapTime = 0;
+        let tapCount = 0;
+        const SWIPE_THRESHOLD = 30; // Distanza minima per considerare uno swipe
         
         // Classe della navicella
         class Ship {
@@ -325,8 +204,7 @@
             
             reset() {
                 this.x = canvas.width / 2;
-                // Sposta la navicella più in alto, lontano dalla zona controlli
-                this.y = (canvas.height - CONTROL_ZONE_HEIGHT) * 0.4;
+                this.y = canvas.height / 2;
                 this.radius = 15;
                 this.angle = -Math.PI / 2; // Punta verso l'alto
                 this.rotation = 0;
@@ -398,11 +276,11 @@
                 this.x += this.velX;
                 this.y += this.velY;
                 
-                // Gestione bordi (wrap-around) - evitando la zona controlli
+                // Gestione bordi (wrap-around)
                 if (this.x < -this.radius) this.x = canvas.width + this.radius;
                 if (this.x > canvas.width + this.radius) this.x = -this.radius;
-                if (this.y < -this.radius) this.y = canvas.height - CONTROL_ZONE_HEIGHT - this.radius;
-                if (this.y > canvas.height - CONTROL_ZONE_HEIGHT - this.radius) this.y = -this.radius;
+                if (this.y < -this.radius) this.y = canvas.height + this.radius;
+                if (this.y > canvas.height + this.radius) this.y = -this.radius;
             }
             
             draw() {
@@ -435,6 +313,18 @@
                 ctx.restore();
             }
             
+            shoot() {
+                const currentTime = Date.now();
+                if (currentTime - lastShotTime > 200) { // Rate of fire limit
+                    bullets.push(new Bullet(
+                        this.x + Math.cos(this.angle) * this.radius,
+                        this.y + Math.sin(this.angle) * this.radius,
+                        this.angle
+                    ));
+                    lastShotTime = currentTime;
+                }
+            }
+            
             hyperspace() {
                 // Teletrasporto casuale con un piccolo rischio di esplosione (1%)
                 if (Math.random() < 0.01) {
@@ -448,9 +338,9 @@
                         this.invincibleTimer = 120;
                     }
                 } else {
-                    // Teletrasporto casuale (evitando la zona controlli)
+                    // Teletrasporto casuale
                     this.x = Math.random() * canvas.width;
-                    this.y = Math.random() * (canvas.height - CONTROL_ZONE_HEIGHT - this.radius * 2) + this.radius;
+                    this.y = Math.random() * canvas.height;
                     this.velX = 0;
                     this.velY = 0;
                     this.invincible = true;
@@ -476,10 +366,8 @@
         // Classe degli asteroidi
         class Asteroid {
             constructor(x, y, size, velX, velY) {
-                // Genera asteroidi evitando la zona controlli
-                const safeY = Math.random() * (canvas.height - CONTROL_ZONE_HEIGHT - 60) + 30;
                 this.x = x || Math.random() * canvas.width;
-                this.y = y || safeY;
+                this.y = y || Math.random() * canvas.height;
                 this.size = size || 3; // 3 = large, 2 = medium, 1 = small
                 this.radius = this.size * 10;
                 this.velX = velX || (Math.random() - 0.5) * 2;
@@ -500,11 +388,11 @@
                 this.y += this.velY;
                 this.angle += this.rotation;
                 
-                // Gestione bordi (wrap-around) - evitando la zona controlli
+                // Gestione bordi (wrap-around)
                 if (this.x < -this.radius) this.x = canvas.width + this.radius;
                 if (this.x > canvas.width + this.radius) this.x = -this.radius;
-                if (this.y < -this.radius) this.y = canvas.height - CONTROL_ZONE_HEIGHT - this.radius;
-                if (this.y > canvas.height - CONTROL_ZONE_HEIGHT - this.radius) this.y = -this.radius;
+                if (this.y < -this.radius) this.y = canvas.height + this.radius;
+                if (this.y > canvas.height + this.radius) this.y = -this.radius;
             }
             
             draw() {
@@ -585,11 +473,11 @@
                 this.y += this.velY;
                 this.life--;
                 
-                // Gestione bordi (wrap-around) - evitando la zona controlli
+                // Gestione bordi (wrap-around)
                 if (this.x < -this.radius) this.x = canvas.width + this.radius;
                 if (this.x > canvas.width + this.radius) this.x = -this.radius;
-                if (this.y < -this.radius) this.y = canvas.height - CONTROL_ZONE_HEIGHT - this.radius;
-                if (this.y > canvas.height - CONTROL_ZONE_HEIGHT - this.radius) this.y = -this.radius;
+                if (this.y < -this.radius) this.y = canvas.height + this.radius;
+                if (this.y > canvas.height + this.radius) this.y = -this.radius;
             }
             
             draw() {
@@ -606,12 +494,8 @@
                 this.isLarge = isLarge || Math.random() > 0.5;
                 this.radius = this.isLarge ? 20 : 10;
                 
-                // Garantisce che gli UFO spawnino sopra la zona controlli
-                const minSpawnY = this.radius;
-                const maxSpawnY = canvas.height - CONTROL_ZONE_HEIGHT - this.radius;
-                this.y = Math.random() * (maxSpawnY - minSpawnY) + minSpawnY;
-                
                 this.x = Math.random() > 0.5 ? -this.radius : canvas.width + this.radius;
+                this.y = Math.random() * canvas.height;
                 this.velX = (this.x > canvas.width / 2 ? -1 : 1) * (this.isLarge ? 1 : 2);
                 this.velY = (Math.random() - 0.5) * 0.5;
                 this.shotTimer = 0;
@@ -702,13 +586,12 @@
             level = 1;
             gameOver = false;
             
-            // Reset controlli
+            // Reset controlli touch
             isThrusting = false;
             isRotatingLeft = false;
             isRotatingRight = false;
-            
-            // Inizializza i pulsanti
-            initButtons();
+            isTouching = false;
+            tapCount = 0;
             
             // Crea asteroidi iniziali
             for (let i = 0; i < 4 + level; i++) {
@@ -716,13 +599,14 @@
             }
             
             gameState.style.display = 'none';
+            instructions.style.display = 'block';
             gameActive = true;
             
             // Avvia il game loop
             requestAnimationFrame(gameLoop);
         }
         
-        // Controlla le collisioni - VERSIONE CORRETTA
+        // Controlla le collisioni
         function checkCollisions() {
             // Collisioni tra proiettili e asteroidi
             for (let i = bullets.length - 1; i >= 0; i--) {
@@ -765,7 +649,7 @@
                 }
             }
             
-            // ✅ COLLISIONI CORRETTE tra navicella e asteroidi
+            // Collisioni tra navicella e asteroidi
             if (ship && !ship.invincible) {
                 for (let i = asteroids.length - 1; i >= 0; i--) {
                     const dx = ship.x - asteroids[i].x;
@@ -825,55 +709,6 @@
                     }
                 }
             }
-            
-            // Collisioni tra oggetti di gioco e pulsanti
-            checkButtonCollisions();
-        }
-        
-        // Controlla collisioni con i pulsanti
-        function checkButtonCollisions() {
-            // Controlla collisioni asteroidi-pulsanti
-            for (let i = asteroids.length - 1; i >= 0; i--) {
-                for (let j = 0; j < buttons.length; j++) {
-                    if (buttons[j].checkCollision(asteroids[i])) {
-                        // L'asteroide collide con il pulsante
-                        const newAsteroids = asteroids[i].split();
-                        asteroids.splice(i, 1);
-                        asteroids.push(...newAsteroids);
-                        break;
-                    }
-                }
-            }
-            
-            // Controlla collisioni UFO-pulsanti
-            for (let i = ufos.length - 1; i >= 0; i--) {
-                for (let j = 0; j < buttons.length; j++) {
-                    if (buttons[j].checkCollision(ufos[i])) {
-                        ufos[i].explode();
-                        ufos.splice(i, 1);
-                        break;
-                    }
-                }
-            }
-            
-            // Controlla collisioni navicella-pulsanti (solo se non invincibile)
-            if (ship && !ship.invincible) {
-                for (let j = 0; j < buttons.length; j++) {
-                    if (buttons[j].checkCollision(ship)) {
-                        ship.explode();
-                        lives--;
-                        
-                        if (lives <= 0) {
-                            endGame();
-                        } else {
-                            ship.reset();
-                            ship.invincible = true;
-                            ship.invincibleTimer = 120;
-                        }
-                        break;
-                    }
-                }
-            }
         }
         
         // Gestisce il passaggio di livello
@@ -888,7 +723,7 @@
                 
                 // Resetta la posizione della navicella
                 ship.x = canvas.width / 2;
-                ship.y = (canvas.height - CONTROL_ZONE_HEIGHT) / 2;
+                ship.y = canvas.height / 2;
                 ship.velX = 0;
                 ship.velY = 0;
                 
@@ -907,7 +742,9 @@
             isThrusting = false;
             isRotatingLeft = false;
             isRotatingRight = false;
+            isTouching = false;
             
+            instructions.style.display = 'none';
             gameState.innerHTML = `
                 <h2>GAME OVER</h2>
                 <p>Final score: ${score}</p>
@@ -919,7 +756,10 @@
             // Aggiungi event listener al pulsante di riavvio
             setTimeout(() => {
                 document.getElementById('restartBtn').addEventListener('click', initGame);
-                document.getElementById('restartBtn').addEventListener('touchstart', initGame);
+                document.getElementById('restartBtn').addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    initGame();
+                });
             }, 100);
         }
         
@@ -934,90 +774,96 @@
             // Disegna le vite
             ctx.fillText(`SHIPS: ${lives}`, 20, 60);
             
-            // Disegna i pulsanti
-            buttons.forEach(button => {
-                button.draw();
-            });
-            
-            // Disegna una linea di separazione per la zona controlli
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(0, canvas.height - CONTROL_ZONE_HEIGHT);
-            ctx.lineTo(canvas.width, canvas.height - CONTROL_ZONE_HEIGHT);
-            ctx.stroke();
+            // Disegna il livello
+            ctx.fillText(`LEVEL: ${level}`, 20, 90);
         }
         
-        // Gestione input touch
+        // Gestione input touch - Nuovo sistema di comandi
         function handleTouchStart(e) {
             e.preventDefault();
-            const touches = e.changedTouches;
+            if (!gameActive || !ship) return;
             
-            for (let i = 0; i < touches.length; i++) {
-                const touch = touches[i];
-                const rect = canvas.getBoundingClientRect();
-                const x = touch.clientX - rect.left;
-                const y = touch.clientY - rect.top;
+            isTouching = true;
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            touchStartX = touch.clientX - rect.left;
+            touchStartY = touch.clientY - rect.top;
+            
+            // Gestione doppio tocco per iperspazio
+            const currentTime = Date.now();
+            if (currentTime - lastTapTime < 300) { // Doppio tocco entro 300ms
+                tapCount++;
+                if (tapCount === 2) {
+                    // Attiva iperspazio
+                    ship.hyperspace();
+                    tapCount = 0;
+                    lastTapTime = 0;
+                    return;
+                }
+            } else {
+                tapCount = 1;
+            }
+            lastTapTime = currentTime;
+        }
+        
+        function handleTouchMove(e) {
+            e.preventDefault();
+            if (!isTouching || !gameActive || !ship) return;
+            
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            touchEndX = touch.clientX - rect.left;
+            touchEndY = touch.clientY - rect.top;
+            
+            const dx = touchEndX - touchStartX;
+            const dy = touchEndY - touchStartY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // Se il movimento è sufficientemente lungo, è uno swipe
+            if (distance > SWIPE_THRESHOLD) {
+                const angle = Math.atan2(dy, dx) * (180 / Math.PI);
                 
-                // Controlla quale pulsante è stato toccato
-                for (let j = 0; j < buttons.length; j++) {
-                    const button = buttons[j];
-                    if (button.containsPoint(x, y)) {
-                        button.active = true;
-                        
-                        switch(button.type) {
-                            case 'left':
-                                isRotatingLeft = true;
-                                break;
-                            case 'right':
-                                isRotatingRight = true;
-                                break;
-                            case 'up':
-                                isThrusting = true;
-                                break;
-                            case 'fire':
-                                if (gameActive && ship) {
-                                    const currentTime = Date.now();
-                                    if (currentTime - lastShotTime > 200) {
-                                        bullets.push(new Bullet(
-                                            ship.x + Math.cos(ship.angle) * ship.radius,
-                                            ship.y + Math.sin(ship.angle) * ship.radius,
-                                            ship.angle
-                                        ));
-                                        lastShotTime = currentTime;
-                                    }
-                                }
-                                break;
-                            case 'hyperspace':
-                                if (gameActive && ship) {
-                                    ship.hyperspace();
-                                }
-                                break;
-                        }
-                    }
+                // Reset dei controlli precedenti
+                isThrusting = false;
+                isRotatingLeft = false;
+                isRotatingRight = false;
+                
+                // Determinazione della direzione
+                if (angle >= -45 && angle <= 45) {
+                    // Swipe a destra
+                    isRotatingRight = true;
+                } else if (angle >= 135 || angle <= -135) {
+                    // Swipe a sinistra
+                    isRotatingLeft = true;
+                } else if (angle > 45 && angle < 135) {
+                    // Swipe verso il basso (non usato)
+                } else if (angle > -135 && angle < -45) {
+                    // Swipe verso l'alto - accelerare
+                    isThrusting = true;
                 }
             }
         }
         
         function handleTouchEnd(e) {
             e.preventDefault();
-            const touches = e.changedTouches;
             
-            for (let i = 0; i < touches.length; i++) {
-                // Disattiva tutti i pulsanti
-                buttons.forEach(button => {
-                    button.active = false;
-                });
-                
-                // Disattiva i controlli continui
-                isThrusting = false;
-                isRotatingLeft = false;
-                isRotatingRight = false;
+            // Se non c'è stato uno swipe, è un tocco rapido (spara)
+            if (tapCount === 1 && !isThrusting && !isRotatingLeft && !isRotatingRight) {
+                const currentTime = Date.now();
+                if (currentTime - lastTapTime < 300) {
+                    // Tocco rapido - spara
+                    if (gameActive && ship) {
+                        ship.shoot();
+                    }
+                }
             }
-        }
-        
-        function handleTouchMove(e) {
-            e.preventDefault();
+            
+            // Reset
+            isTouching = false;
+            isThrusting = false;
+            isRotatingLeft = false;
+            isRotatingRight = false;
+            tapCount = 0;
         }
         
         // Game loop principale
@@ -1107,15 +953,19 @@
             
             // Mostra la schermata iniziale
             gameState.style.display = 'flex';
+            instructions.style.display = 'none';
             
             // Avvia il gioco quando si clicca su "START GAME"
             startBtn.addEventListener('click', initGame);
-            startBtn.addEventListener('touchstart', initGame);
+            startBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                initGame();
+            });
             
             // Gestione input touch
             canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-            canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
             canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+            canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
             
             // Ridimensiona il canvas quando la finestra cambia dimensione
             window.addEventListener('resize', resizeCanvas);
