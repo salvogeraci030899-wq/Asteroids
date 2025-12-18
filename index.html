@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Asteroids 1979 - Mobile Touch Controls</title>
+    <title>Asteroids</title>
     <style>
         * {
             margin: 0;
@@ -84,7 +84,7 @@
             line-height: 1.5;
         }
         
-        #startBtn {
+        .game-btn {
             background-color: #fff;
             color: #000;
             border: none;
@@ -99,25 +99,13 @@
             letter-spacing: 2px;
         }
         
-        #startBtn:active {
+        .game-btn:active {
             background-color: #ccc;
             transform: scale(0.98);
         }
         
-        #startBtn:focus {
+        .game-btn:focus {
             outline: none;
-        }
-        
-        #instructions {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.7);
-            padding: 0 20px;
-            z-index: 5;
         }
         
         @media (max-width: 600px) {
@@ -128,11 +116,6 @@
             #gameState p {
                 font-size: 18px;
             }
-            
-            #instructions {
-                font-size: 12px;
-                bottom: 10px;
-            }
         }
     </style>
 </head>
@@ -140,16 +123,12 @@
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         
-        <div id="instructions">
-            <p>Tap to SHOOT | Swipe left/right to ROTATE | Swipe up to THRUST | Double-tap for HYPERSPACE</p>
-        </div>
-        
         <div id="gameState">
-            <h2>ASTEROIDS 1979</h2>
+            <h2>Asteroids</h2>
             <p>Destroy all asteroids!</p>
             <p>Avoid collisions with asteroids and UFOs</p>
             <p>Each asteroid splits into smaller pieces</p>
-            <button id="startBtn">START GAME</button>
+            <button id="startBtn" class="game-btn">START GAME</button>
         </div>
     </div>
 
@@ -159,7 +138,6 @@
         const ctx = canvas.getContext('2d');
         const gameState = document.getElementById('gameState');
         const startBtn = document.getElementById('startBtn');
-        const instructions = document.getElementById('instructions');
         
         // Imposta le dimensioni del canvas a schermo intero
         function resizeCanvas() {
@@ -192,9 +170,11 @@
         let touchEndX = 0;
         let touchEndY = 0;
         let isTouching = false;
-        let lastTapTime = 0;
-        let tapCount = 0;
-        const SWIPE_THRESHOLD = 30; // Distanza minima per considerare uno swipe
+        
+        // Variabili per l'iperspazio (press and hold)
+        let hyperspaceHoldTimer = null;
+        let isHoldingForHyperspace = false;
+        const HYPERSPACE_HOLD_TIME = 1000; // 1 secondo per attivare l'iperspazio
         
         // Classe della navicella
         class Ship {
@@ -591,7 +571,11 @@
             isRotatingLeft = false;
             isRotatingRight = false;
             isTouching = false;
-            tapCount = 0;
+            isHoldingForHyperspace = false;
+            if (hyperspaceHoldTimer) {
+                clearTimeout(hyperspaceHoldTimer);
+                hyperspaceHoldTimer = null;
+            }
             
             // Crea asteroidi iniziali
             for (let i = 0; i < 4 + level; i++) {
@@ -599,7 +583,6 @@
             }
             
             gameState.style.display = 'none';
-            instructions.style.display = 'block';
             gameActive = true;
             
             // Avvia il game loop
@@ -743,20 +726,26 @@
             isRotatingLeft = false;
             isRotatingRight = false;
             isTouching = false;
+            isHoldingForHyperspace = false;
+            if (hyperspaceHoldTimer) {
+                clearTimeout(hyperspaceHoldTimer);
+                hyperspaceHoldTimer = null;
+            }
             
-            instructions.style.display = 'none';
             gameState.innerHTML = `
-                <h2>GAME OVER</h2>
+                <h2>Asteroids</h2>
+                <p>GAME OVER</p>
                 <p>Final score: ${score}</p>
                 <p>Level reached: ${level}</p>
-                <button id="restartBtn">PLAY AGAIN</button>
+                <button id="restartBtn" class="game-btn">PLAY AGAIN</button>
             `;
             gameState.style.display = 'flex';
             
             // Aggiungi event listener al pulsante di riavvio
             setTimeout(() => {
-                document.getElementById('restartBtn').addEventListener('click', initGame);
-                document.getElementById('restartBtn').addEventListener('touchstart', (e) => {
+                const restartBtn = document.getElementById('restartBtn');
+                restartBtn.addEventListener('click', initGame);
+                restartBtn.addEventListener('touchstart', (e) => {
                     e.preventDefault();
                     initGame();
                 });
@@ -789,21 +778,14 @@
             touchStartX = touch.clientX - rect.left;
             touchStartY = touch.clientY - rect.top;
             
-            // Gestione doppio tocco per iperspazio
-            const currentTime = Date.now();
-            if (currentTime - lastTapTime < 300) { // Doppio tocco entro 300ms
-                tapCount++;
-                if (tapCount === 2) {
-                    // Attiva iperspazio
+            // Avvia il timer per l'iperspazio (press and hold)
+            isHoldingForHyperspace = true;
+            hyperspaceHoldTimer = setTimeout(() => {
+                if (isHoldingForHyperspace && gameActive && ship) {
                     ship.hyperspace();
-                    tapCount = 0;
-                    lastTapTime = 0;
-                    return;
+                    isHoldingForHyperspace = false;
                 }
-            } else {
-                tapCount = 1;
-            }
-            lastTapTime = currentTime;
+            }, HYPERSPACE_HOLD_TIME);
         }
         
         function handleTouchMove(e) {
@@ -819,42 +801,41 @@
             const dy = touchEndY - touchStartY;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            // Se il movimento è sufficientemente lungo, è uno swipe
-            if (distance > SWIPE_THRESHOLD) {
-                const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-                
-                // Reset dei controlli precedenti
-                isThrusting = false;
-                isRotatingLeft = false;
-                isRotatingRight = false;
-                
-                // Determinazione della direzione
-                if (angle >= -45 && angle <= 45) {
-                    // Swipe a destra
-                    isRotatingRight = true;
-                } else if (angle >= 135 || angle <= -135) {
-                    // Swipe a sinistra
-                    isRotatingLeft = true;
-                } else if (angle > 45 && angle < 135) {
-                    // Swipe verso il basso (non usato)
-                } else if (angle > -135 && angle < -45) {
-                    // Swipe verso l'alto - accelerare
-                    isThrusting = true;
-                }
+            // Se l'utente sta muovendo il dito, annulla l'iperspazio
+            if (distance > 10 && isHoldingForHyperspace) {
+                clearTimeout(hyperspaceHoldTimer);
+                isHoldingForHyperspace = false;
+            }
+            
+            // Reset dei controlli precedenti
+            isThrusting = false;
+            isRotatingLeft = false;
+            isRotatingRight = false;
+            
+            // Determinazione della direzione
+            const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+            
+            if (dx > 0 && Math.abs(dy) < Math.abs(dx) * 0.5) {
+                // Swipe a destra
+                isRotatingRight = true;
+            } else if (dx < 0 && Math.abs(dy) < Math.abs(dx) * 0.5) {
+                // Swipe a sinistra
+                isRotatingLeft = true;
+            } else if (dy < 0 && Math.abs(dx) < Math.abs(dy) * 0.5) {
+                // Swipe verso l'alto - accelerare
+                isThrusting = true;
             }
         }
         
         function handleTouchEnd(e) {
             e.preventDefault();
             
-            // Se non c'è stato uno swipe, è un tocco rapido (spara)
-            if (tapCount === 1 && !isThrusting && !isRotatingLeft && !isRotatingRight) {
-                const currentTime = Date.now();
-                if (currentTime - lastTapTime < 300) {
-                    // Tocco rapido - spara
-                    if (gameActive && ship) {
-                        ship.shoot();
-                    }
+            // Se non è stato attivato l'iperspazio e non c'è stato uno swipe, spara
+            if (isHoldingForHyperspace && !isThrusting && !isRotatingLeft && !isRotatingRight) {
+                clearTimeout(hyperspaceHoldTimer);
+                // Tocco rapido - spara
+                if (gameActive && ship) {
+                    ship.shoot();
                 }
             }
             
@@ -863,7 +844,11 @@
             isThrusting = false;
             isRotatingLeft = false;
             isRotatingRight = false;
-            tapCount = 0;
+            isHoldingForHyperspace = false;
+            if (hyperspaceHoldTimer) {
+                clearTimeout(hyperspaceHoldTimer);
+                hyperspaceHoldTimer = null;
+            }
         }
         
         // Game loop principale
@@ -953,7 +938,6 @@
             
             // Mostra la schermata iniziale
             gameState.style.display = 'flex';
-            instructions.style.display = 'none';
             
             // Avvia il gioco quando si clicca su "START GAME"
             startBtn.addEventListener('click', initGame);
