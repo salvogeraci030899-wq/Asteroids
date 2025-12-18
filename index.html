@@ -14,7 +14,7 @@
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
-            touch-action: manipulation;
+            touch-action: none;
         }
         
         body {
@@ -49,150 +49,7 @@
             width: 100%;
             height: 100%;
             display: block;
-        }
-        
-        #uiOverlay {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            display: flex;
-            justify-content: space-between;
-            pointer-events: none;
-            z-index: 2;
-        }
-        
-        #scoreDisplay, #livesDisplay {
-            font-size: 20px;
-            color: #fff;
-            text-shadow: 0 0 3px #fff;
-            font-weight: bold;
-        }
-        
-        #controls {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            width: 100%;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 3;
-            border-top: 1px solid #fff;
-            height: 140px;
-        }
-        
-        .control-circle {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background-color: rgba(0, 0, 0, 0.8);
-            border: 2px solid #fff;
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 5;
-            margin-bottom: 10px;
-            touch-action: manipulation;
-        }
-        
-        .control-circle:active {
-            background-color: #fff;
-            color: #000;
-            transform: scale(0.95);
-        }
-        
-        #triangleControl {
-            position: relative;
-            width: 160px;
-            height: 140px;
-            margin-bottom: 10px;
-            z-index: 4;
-        }
-        
-        #triangleBase {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-        }
-        
-        .triangle-zone {
-            position: absolute;
-            cursor: pointer;
-            opacity: 0.7;
-            transition: opacity 0.2s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #fff;
-            font-size: 24px;
-            font-weight: bold;
-        }
-        
-        .triangle-zone:active {
-            opacity: 1;
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-        
-        #triangleUp {
-            width: 0;
-            height: 0;
-            border-left: 50px solid transparent;
-            border-right: 50px solid transparent;
-            border-bottom: 80px solid rgba(255, 255, 255, 0.3);
-            bottom: 40px;
-            left: 30px;
-        }
-        
-        #triangleLeft {
-            width: 0;
-            height: 0;
-            border-top: 40px solid transparent;
-            border-right: 70px solid rgba(255, 255, 255, 0.3);
-            border-bottom: 40px solid transparent;
-            bottom: 30px;
-            left: 0;
-        }
-        
-        #triangleRight {
-            width: 0;
-            height: 0;
-            border-top: 40px solid transparent;
-            border-left: 70px solid rgba(255, 255, 255, 0.3);
-            border-bottom: 40px solid transparent;
-            bottom: 30px;
-            right: 0;
-        }
-        
-        #triangleUp:before {
-            content: "▲";
-            position: absolute;
-            top: 45px;
-            left: -15px;
-        }
-        
-        #triangleLeft:before {
-            content: "◀";
-            position: absolute;
-            top: -12px;
-            left: -50px;
-        }
-        
-        #triangleRight:before {
-            content: "▶";
-            position: absolute;
-            top: -12px;
-            left: 20px;
+            touch-action: none;
         }
         
         #gameState {
@@ -248,130 +105,11 @@
         }
         
         /* Rimuovi i bordi arancioni di focus su mobile */
-        .control-circle:focus, #startBtn:focus, .triangle-zone:focus {
+        #startBtn:focus {
             outline: none;
         }
         
-        /* Media queries per schermi più piccoli */
-        @media (max-height: 700px) {
-            #controls {
-                height: 120px;
-                padding: 10px;
-            }
-            
-            .control-circle {
-                width: 60px;
-                height: 60px;
-                font-size: 20px;
-            }
-            
-            #triangleControl {
-                width: 140px;
-                height: 120px;
-            }
-            
-            #triangleUp {
-                border-left: 45px solid transparent;
-                border-right: 45px solid transparent;
-                border-bottom: 70px solid rgba(255, 255, 255, 0.3);
-                bottom: 35px;
-                left: 25px;
-            }
-            
-            #triangleLeft {
-                border-top: 35px solid transparent;
-                border-right: 60px solid rgba(255, 255, 255, 0.3);
-                border-bottom: 35px solid transparent;
-                bottom: 25px;
-            }
-            
-            #triangleRight {
-                border-top: 35px solid transparent;
-                border-left: 60px solid rgba(255, 255, 255, 0.3);
-                border-bottom: 35px solid transparent;
-                bottom: 25px;
-            }
-            
-            #triangleUp:before {
-                top: 40px;
-                left: -13px;
-            }
-            
-            #triangleLeft:before {
-                top: -10px;
-                left: -45px;
-            }
-            
-            #triangleRight:before {
-                top: -10px;
-                left: 15px;
-            }
-            
-            #uiOverlay {
-                top: 5px;
-            }
-            
-            #scoreDisplay, #livesDisplay {
-                font-size: 18px;
-            }
-        }
-        
         @media (max-width: 600px) {
-            #controls {
-                padding: 10px;
-            }
-            
-            .control-circle {
-                width: 60px;
-                height: 60px;
-                font-size: 20px;
-            }
-            
-            #triangleControl {
-                width: 130px;
-                height: 110px;
-            }
-            
-            #triangleUp {
-                border-left: 40px solid transparent;
-                border-right: 40px solid transparent;
-                border-bottom: 65px solid rgba(255, 255, 255, 0.3);
-                bottom: 30px;
-                left: 25px;
-            }
-            
-            #triangleLeft {
-                border-top: 30px solid transparent;
-                border-right: 55px solid rgba(255, 255, 255, 0.3);
-                border-bottom: 30px solid transparent;
-                bottom: 25px;
-            }
-            
-            #triangleRight {
-                border-top: 30px solid transparent;
-                border-left: 55px solid rgba(255, 255, 255, 0.3);
-                border-bottom: 30px solid transparent;
-                bottom: 25px;
-            }
-            
-            #triangleUp:before {
-                top: 35px;
-                left: -12px;
-                font-size: 20px;
-            }
-            
-            #triangleLeft:before {
-                top: -8px;
-                left: -40px;
-                font-size: 20px;
-            }
-            
-            #triangleRight:before {
-                top: -8px;
-                left: 13px;
-                font-size: 20px;
-            }
-            
             #gameState h2 {
                 font-size: 28px;
             }
@@ -380,85 +118,11 @@
                 font-size: 18px;
             }
         }
-        
-        @media (max-height: 500px) {
-            #controls {
-                height: 100px;
-            }
-            
-            .control-circle {
-                width: 50px;
-                height: 50px;
-                font-size: 18px;
-            }
-            
-            #triangleControl {
-                width: 120px;
-                height: 90px;
-            }
-            
-            #triangleUp {
-                border-left: 35px solid transparent;
-                border-right: 35px solid transparent;
-                border-bottom: 55px solid rgba(255, 255, 255, 0.3);
-                bottom: 25px;
-                left: 25px;
-            }
-            
-            #triangleLeft {
-                border-top: 25px solid transparent;
-                border-right: 50px solid rgba(255, 255, 255, 0.3);
-                border-bottom: 25px solid transparent;
-                bottom: 20px;
-            }
-            
-            #triangleRight {
-                border-top: 25px solid transparent;
-                border-left: 50px solid rgba(255, 255, 255, 0.3);
-                border-bottom: 25px solid transparent;
-                bottom: 20px;
-            }
-            
-            #triangleUp:before {
-                top: 30px;
-                left: -10px;
-                font-size: 18px;
-            }
-            
-            #triangleLeft:before {
-                top: -7px;
-                left: -35px;
-                font-size: 18px;
-            }
-            
-            #triangleRight:before {
-                top: -7px;
-                left: 10px;
-                font-size: 18px;
-            }
-        }
     </style>
 </head>
 <body>
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
-        <div id="uiOverlay">
-            <div id="scoreDisplay">SCORE: 0</div>
-            <div id="livesDisplay">SHIPS: 3</div>
-        </div>
-        <div id="controls">
-            <div class="control-circle" id="fireBtn">S</div>
-            
-            <div id="triangleControl">
-                <div id="triangleBase">
-                    <div class="triangle-zone" id="triangleUp"></div>
-                    <div class="triangle-zone" id="triangleLeft"></div>
-                    <div class="triangle-zone" id="triangleRight"></div>
-                </div>
-            </div>
-            
-            <div class="control-circle" id="hyperspaceBtn">H</div>
-        </div>
         
         <div id="gameState">
             <h2>ASTEROIDS 1979</h2>
@@ -475,11 +139,6 @@
         const ctx = canvas.getContext('2d');
         const gameState = document.getElementById('gameState');
         const startBtn = document.getElementById('startBtn');
-        const scoreDisplay = document.getElementById('scoreDisplay');
-        const livesDisplay = document.getElementById('livesDisplay');
-        
-        // Zona vietata per i comandi (altezza in pixel)
-        const CONTROL_ZONE_HEIGHT = 140;
         
         // Imposta le dimensioni del canvas a schermo intero
         function resizeCanvas() {
@@ -505,6 +164,137 @@
         let isThrusting = false;
         let isRotatingLeft = false;
         let isRotatingRight = false;
+        let touchId = null;
+        
+        // Variabili per i tasti (oggetti di gioco)
+        let buttons = [];
+        
+        // Classe dei tasti (oggetti di gioco)
+        class GameButton {
+            constructor(x, y, width, height, type) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.type = type; // 'left', 'right', 'up', 'fire', 'hyperspace'
+                this.active = false;
+                this.color = 'rgba(255, 255, 255, 0.3)';
+                this.activeColor = 'rgba(255, 255, 255, 0.8)';
+                this.borderColor = '#fff';
+                this.radius = 15;
+            }
+            
+            draw() {
+                ctx.save();
+                
+                // Disegna lo sfondo del pulsante
+                ctx.fillStyle = this.active ? this.activeColor : this.color;
+                ctx.strokeStyle = this.borderColor;
+                ctx.lineWidth = 2;
+                
+                // Rettangolo arrotondato
+                ctx.beginPath();
+                ctx.roundRect(this.x, this.y, this.width, this.height, this.radius);
+                ctx.fill();
+                ctx.stroke();
+                
+                // Disegna il simbolo del pulsante
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 30px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                let symbol = '';
+                switch(this.type) {
+                    case 'left': symbol = '◀'; break;
+                    case 'right': symbol = '▶'; break;
+                    case 'up': symbol = '▲'; break;
+                    case 'fire': symbol = '●'; break;
+                    case 'hyperspace': symbol = 'H'; break;
+                }
+                
+                ctx.fillText(symbol, this.x + this.width/2, this.y + this.height/2);
+                
+                ctx.restore();
+            }
+            
+            containsPoint(x, y) {
+                return x >= this.x && x <= this.x + this.width &&
+                       y >= this.y && y <= this.y + this.height;
+            }
+            
+            // Controlla collisione con altri oggetti di gioco
+            checkCollision(object) {
+                // Calcola il centro dell'oggetto
+                const objCenterX = object.x || object.x;
+                const objCenterY = object.y || object.y;
+                const objRadius = object.radius || 0;
+                
+                // Calcola il punto più vicino sul pulsante all'oggetto
+                const closestX = Math.max(this.x, Math.min(objCenterX, this.x + this.width));
+                const closestY = Math.max(this.y, Math.min(objCenterY, this.y + this.height));
+                
+                // Calcola la distanza
+                const distanceX = objCenterX - closestX;
+                const distanceY = objCenterY - closestY;
+                const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+                
+                return distance <= objRadius;
+            }
+        }
+        
+        // Inizializza i pulsanti
+        function initButtons() {
+            buttons = [];
+            const buttonSize = 70;
+            const margin = 20;
+            const bottom = canvas.height - buttonSize - margin;
+            
+            // Pulsante sinistra
+            buttons.push(new GameButton(
+                margin,
+                bottom,
+                buttonSize,
+                buttonSize,
+                'left'
+            ));
+            
+            // Pulsante su (accelerazione)
+            buttons.push(new GameButton(
+                canvas.width/2 - buttonSize/2,
+                bottom - buttonSize - margin/2,
+                buttonSize,
+                buttonSize,
+                'up'
+            ));
+            
+            // Pulsante destra
+            buttons.push(new GameButton(
+                canvas.width - buttonSize - margin,
+                bottom,
+                buttonSize,
+                buttonSize,
+                'right'
+            ));
+            
+            // Pulsante fuoco (in alto a sinistra)
+            buttons.push(new GameButton(
+                margin,
+                margin,
+                buttonSize,
+                buttonSize,
+                'fire'
+            ));
+            
+            // Pulsante iperspazio (in alto a destra)
+            buttons.push(new GameButton(
+                canvas.width - buttonSize - margin,
+                margin,
+                buttonSize,
+                buttonSize,
+                'hyperspace'
+            ));
+        }
         
         // Classe della navicella
         class Ship {
@@ -514,7 +304,7 @@
             
             reset() {
                 this.x = canvas.width / 2;
-                this.y = canvas.height / 2 - CONTROL_ZONE_HEIGHT / 2;
+                this.y = canvas.height / 2;
                 this.radius = 15;
                 this.angle = -Math.PI / 2; // Punta verso l'alto
                 this.rotation = 0;
@@ -568,17 +358,11 @@
                 this.x += this.velX;
                 this.y += this.velY;
                 
-                // Gestione bordi (wrap-around) ma non nella zona dei comandi
+                // Gestione bordi (wrap-around) - tutto lo schermo
                 if (this.x < -this.radius) this.x = canvas.width + this.radius;
                 if (this.x > canvas.width + this.radius) this.x = -this.radius;
-                
-                // Gestione bordi verticali - MAI nella zona dei comandi
-                if (this.y < -this.radius) {
-                    this.y = canvas.height - CONTROL_ZONE_HEIGHT - this.radius;
-                }
-                if (this.y > canvas.height - CONTROL_ZONE_HEIGHT - this.radius) {
-                    this.y = -this.radius;
-                }
+                if (this.y < -this.radius) this.y = canvas.height + this.radius;
+                if (this.y > canvas.height + this.radius) this.y = -this.radius;
             }
             
             draw() {
@@ -625,9 +409,9 @@
                         this.invincibleTimer = 120;
                     }
                 } else {
-                    // Teletrasporto casuale MA NON nella zona dei comandi
+                    // Teletrasporto casuale
                     this.x = Math.random() * canvas.width;
-                    this.y = Math.random() * (canvas.height - CONTROL_ZONE_HEIGHT - this.radius * 2) + this.radius;
+                    this.y = Math.random() * canvas.height;
                     this.velX = 0;
                     this.velY = 0;
                     this.invincible = true;
@@ -653,10 +437,8 @@
         // Classe degli asteroidi
         class Asteroid {
             constructor(x, y, size, velX, velY) {
-                // Genera asteroidi MAI nella zona dei comandi
-                const safeY = Math.random() * (canvas.height - CONTROL_ZONE_HEIGHT - 60) + 30;
                 this.x = x || Math.random() * canvas.width;
-                this.y = y || safeY;
+                this.y = y || Math.random() * canvas.height;
                 this.size = size || 3; // 3 = large, 2 = medium, 1 = small
                 this.radius = this.size * 10;
                 this.velX = velX || (Math.random() - 0.5) * 2;
@@ -677,17 +459,11 @@
                 this.y += this.velY;
                 this.angle += this.rotation;
                 
-                // Gestione bordi (wrap-around) ma non nella zona dei comandi
+                // Gestione bordi (wrap-around) - tutto lo schermo
                 if (this.x < -this.radius) this.x = canvas.width + this.radius;
                 if (this.x > canvas.width + this.radius) this.x = -this.radius;
-                
-                // Gestione bordi verticali - MAI nella zona dei comandi
-                if (this.y < -this.radius) {
-                    this.y = canvas.height - CONTROL_ZONE_HEIGHT - this.radius;
-                }
-                if (this.y > canvas.height - CONTROL_ZONE_HEIGHT - this.radius) {
-                    this.y = -this.radius;
-                }
+                if (this.y < -this.radius) this.y = canvas.height + this.radius;
+                if (this.y > canvas.height + this.radius) this.y = -this.radius;
             }
             
             draw() {
@@ -736,8 +512,6 @@
                 else if (this.size === 2) score += 50;
                 else if (this.size === 1) score += 100;
                 
-                updateScoreDisplay();
-                
                 // Crea particelle di esplosione
                 for (let i = 0; i < 15; i++) {
                     particles.push({
@@ -770,17 +544,11 @@
                 this.y += this.velY;
                 this.life--;
                 
-                // Gestione bordi (wrap-around) ma non nella zona dei comandi
+                // Gestione bordi (wrap-around) - tutto lo schermo
                 if (this.x < -this.radius) this.x = canvas.width + this.radius;
                 if (this.x > canvas.width + this.radius) this.x = -this.radius;
-                
-                // Rimuovi se entra nella zona dei comandi
-                if (this.y > canvas.height - CONTROL_ZONE_HEIGHT) {
-                    this.life = 0;
-                }
-                
-                // Gestione bordo superiore
-                if (this.y < -this.radius) this.y = canvas.height - CONTROL_ZONE_HEIGHT - this.radius;
+                if (this.y < -this.radius) this.y = canvas.height + this.radius;
+                if (this.y > canvas.height + this.radius) this.y = -this.radius;
             }
             
             draw() {
@@ -796,10 +564,8 @@
             constructor(isLarge) {
                 this.isLarge = isLarge || Math.random() > 0.5;
                 this.radius = this.isLarge ? 20 : 10;
-                // Genera UFO MAI nella zona dei comandi
-                const safeY = Math.random() * (canvas.height - CONTROL_ZONE_HEIGHT - this.radius * 2) + this.radius;
                 this.x = Math.random() > 0.5 ? -this.radius : canvas.width + this.radius;
-                this.y = safeY;
+                this.y = Math.random() * canvas.height;
                 this.velX = (this.x > canvas.width / 2 ? -1 : 1) * (this.isLarge ? 1 : 2);
                 this.velY = (Math.random() - 0.5) * 0.5;
                 this.shotTimer = 0;
@@ -814,11 +580,6 @@
                 
                 // Rimuovi se esce dallo schermo
                 if (this.x < -this.radius * 2 || this.x > canvas.width + this.radius * 2) {
-                    return false;
-                }
-                
-                // Rimuovi se entra nella zona dei comandi
-                if (this.y > canvas.height - CONTROL_ZONE_HEIGHT - this.radius) {
                     return false;
                 }
                 
@@ -868,7 +629,6 @@
             
             explode() {
                 score += this.points;
-                updateScoreDisplay();
                 
                 // Crea particelle di esplosione
                 for (let i = 0; i < 25; i++) {
@@ -901,28 +661,19 @@
             isRotatingLeft = false;
             isRotatingRight = false;
             
+            // Inizializza i pulsanti
+            initButtons();
+            
             // Crea asteroidi iniziali
             for (let i = 0; i < 4 + level; i++) {
                 asteroids.push(new Asteroid());
             }
             
-            updateScoreDisplay();
-            updateLivesDisplay();
             gameState.style.display = 'none';
             gameActive = true;
             
             // Avvia il game loop
             requestAnimationFrame(gameLoop);
-        }
-        
-        // Aggiorna il display del punteggio
-        function updateScoreDisplay() {
-            scoreDisplay.textContent = `SCORE: ${score}`;
-        }
-        
-        // Aggiorna il display delle vite
-        function updateLivesDisplay() {
-            livesDisplay.textContent = `SHIPS: ${lives}`;
         }
         
         // Controlla le collisioni
@@ -979,7 +730,6 @@
                         // Distruggi la navicella
                         ship.explode();
                         lives--;
-                        updateLivesDisplay();
                         
                         if (lives <= 0) {
                             endGame();
@@ -1011,7 +761,6 @@
                         // Distruggi la navicella
                         ship.explode();
                         lives--;
-                        updateLivesDisplay();
                         
                         if (lives <= 0) {
                             endGame();
@@ -1030,6 +779,58 @@
                     }
                 }
             }
+            
+            // Collisioni tra oggetti di gioco e pulsanti
+            checkButtonCollisions();
+        }
+        
+        // Controlla collisioni con i pulsanti
+        function checkButtonCollisions() {
+            // Controlla collisioni asteroidi-pulsanti
+            for (let i = asteroids.length - 1; i >= 0; i--) {
+                for (let j = 0; j < buttons.length; j++) {
+                    if (buttons[j].checkCollision(asteroids[i])) {
+                        // L'asteroide collide con il pulsante
+                        // Divide l'asteroide
+                        const newAsteroids = asteroids[i].split();
+                        asteroids.splice(i, 1);
+                        asteroids.push(...newAsteroids);
+                        break;
+                    }
+                }
+            }
+            
+            // Controlla collisioni UFO-pulsanti
+            for (let i = ufos.length - 1; i >= 0; i--) {
+                for (let j = 0; j < buttons.length; j++) {
+                    if (buttons[j].checkCollision(ufos[i])) {
+                        // L'UFO collide con il pulsante
+                        ufos[i].explode();
+                        ufos.splice(i, 1);
+                        break;
+                    }
+                }
+            }
+            
+            // Controlla collisioni navicella-pulsanti (solo se non invincibile)
+            if (ship && !ship.invincible) {
+                for (let j = 0; j < buttons.length; j++) {
+                    if (buttons[j].checkCollision(ship)) {
+                        // La navicella collide con il pulsante
+                        ship.explode();
+                        lives--;
+                        
+                        if (lives <= 0) {
+                            endGame();
+                        } else {
+                            ship.reset();
+                            ship.invincible = true;
+                            ship.invincibleTimer = 120;
+                        }
+                        break;
+                    }
+                }
+            }
         }
         
         // Gestisce il passaggio di livello
@@ -1044,7 +845,7 @@
                 
                 // Resetta la posizione della navicella
                 ship.x = canvas.width / 2;
-                ship.y = canvas.height / 2 - CONTROL_ZONE_HEIGHT / 2;
+                ship.y = canvas.height / 2;
                 ship.velX = 0;
                 ship.velY = 0;
                 
@@ -1077,6 +878,95 @@
                 document.getElementById('restartBtn').addEventListener('click', initGame);
                 document.getElementById('restartBtn').addEventListener('touchstart', initGame);
             }, 100);
+        }
+        
+        // Disegna l'interfaccia utente
+        function drawUI() {
+            // Disegna il punteggio
+            ctx.fillStyle = '#fff';
+            ctx.font = '20px Courier New';
+            ctx.textAlign = 'left';
+            ctx.fillText(`SCORE: ${score}`, 20, 30);
+            
+            // Disegna le vite
+            ctx.fillText(`SHIPS: ${lives}`, 20, 60);
+            
+            // Disegna i pulsanti
+            buttons.forEach(button => {
+                button.draw();
+            });
+        }
+        
+        // Gestione input touch
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const touches = e.changedTouches;
+            
+            for (let i = 0; i < touches.length; i++) {
+                const touch = touches[i];
+                const rect = canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                
+                // Controlla quale pulsante è stato toccato
+                for (let j = 0; j < buttons.length; j++) {
+                    const button = buttons[j];
+                    if (button.containsPoint(x, y)) {
+                        button.active = true;
+                        
+                        switch(button.type) {
+                            case 'left':
+                                isRotatingLeft = true;
+                                break;
+                            case 'right':
+                                isRotatingRight = true;
+                                break;
+                            case 'up':
+                                isThrusting = true;
+                                break;
+                            case 'fire':
+                                if (gameActive && ship) {
+                                    const currentTime = Date.now();
+                                    if (currentTime - lastShotTime > 200) {
+                                        bullets.push(new Bullet(
+                                            ship.x + Math.cos(ship.angle) * ship.radius,
+                                            ship.y + Math.sin(ship.angle) * ship.radius,
+                                            ship.angle
+                                        ));
+                                        lastShotTime = currentTime;
+                                    }
+                                }
+                                break;
+                            case 'hyperspace':
+                                if (gameActive && ship) {
+                                    ship.hyperspace();
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            const touches = e.changedTouches;
+            
+            for (let i = 0; i < touches.length; i++) {
+                // Disattiva tutti i pulsanti
+                buttons.forEach(button => {
+                    button.active = false;
+                });
+                
+                // Disattiva i controlli continui
+                isThrusting = false;
+                isRotatingLeft = false;
+                isRotatingRight = false;
+            }
+        }
+        
+        function handleTouchMove(e) {
+            e.preventDefault();
         }
         
         // Game loop principale
@@ -1128,11 +1018,6 @@
                 particles[i].y += particles[i].velY;
                 particles[i].life--;
                 
-                // Rimuovi particelle se entrano nella zona dei comandi
-                if (particles[i].y > canvas.height - CONTROL_ZONE_HEIGHT) {
-                    particles[i].life = 0;
-                }
-                
                 // Disegna particelle
                 ctx.fillStyle = particles[i].color;
                 ctx.beginPath();
@@ -1144,6 +1029,9 @@
                     particles.splice(i, 1);
                 }
             }
+            
+            // Disegna l'interfaccia utente
+            drawUI();
             
             // Controlla collisioni
             checkCollisions();
@@ -1162,115 +1050,9 @@
             requestAnimationFrame(gameLoop);
         }
         
-        // Gestione input touch per i controlli mobili
-        function setupTouchControls() {
-            const fireBtn = document.getElementById('fireBtn');
-            const hyperspaceBtn = document.getElementById('hyperspaceBtn');
-            const triangleUp = document.getElementById('triangleUp');
-            const triangleLeft = document.getElementById('triangleLeft');
-            const triangleRight = document.getElementById('triangleRight');
-            
-            // Tasto SPARA (cerchio sinistro)
-            fireBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                if (gameActive && ship) {
-                    const currentTime = Date.now();
-                    if (currentTime - lastShotTime > 200) {
-                        bullets.push(new Bullet(
-                            ship.x + Math.cos(ship.angle) * ship.radius,
-                            ship.y + Math.sin(ship.angle) * ship.radius,
-                            ship.angle
-                        ));
-                        lastShotTime = currentTime;
-                    }
-                }
-                
-                // Feedback visivo
-                fireBtn.style.backgroundColor = '#fff';
-                fireBtn.style.color = '#000';
-            });
-            
-            fireBtn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                fireBtn.style.backgroundColor = '';
-                fireBtn.style.color = '';
-            });
-            
-            // Tasto IPERSPAZIO (cerchio destro)
-            hyperspaceBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                if (gameActive && ship) {
-                    ship.hyperspace();
-                }
-                
-                // Feedback visivo
-                hyperspaceBtn.style.backgroundColor = '#fff';
-                hyperspaceBtn.style.color = '#000';
-            });
-            
-            hyperspaceBtn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                hyperspaceBtn.style.backgroundColor = '';
-                hyperspaceBtn.style.color = '';
-            });
-            
-            // Controllo triangolo: UP (accelerazione)
-            triangleUp.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                isThrusting = true;
-                triangleUp.style.opacity = '1';
-            });
-            
-            triangleUp.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                isThrusting = false;
-                triangleUp.style.opacity = '0.7';
-            });
-            
-            // Controllo triangolo: LEFT (rotazione sinistra)
-            triangleLeft.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                isRotatingLeft = true;
-                triangleLeft.style.opacity = '1';
-            });
-            
-            triangleLeft.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                isRotatingLeft = false;
-                triangleLeft.style.opacity = '0.7';
-            });
-            
-            // Controllo triangolo: RIGHT (rotazione destra)
-            triangleRight.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                isRotatingRight = true;
-                triangleRight.style.opacity = '1';
-            });
-            
-            triangleRight.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                isRotatingRight = false;
-                triangleRight.style.opacity = '0.7';
-            });
-            
-            // Gestione del multitouch: se il dito esce dall'elemento, disattiva il controllo
-            document.addEventListener('touchmove', (e) => {
-                // Non blocchiamo completamente il touchmove per permettere lo spostamento tra i controlli
-            }, { passive: true });
-            
-            // Previeni il comportamento predefinito del touch per evitare lo zoom
-            document.addEventListener('touchstart', (e) => {
-                if (e.target.classList.contains('control-circle') || 
-                    e.target.classList.contains('triangle-zone')) {
-                    e.preventDefault();
-                }
-            }, { passive: false });
-        }
-        
         // Inizializza quando la pagina è caricata
         window.addEventListener('load', () => {
             resizeCanvas();
-            setupTouchControls();
             
             // Mostra la schermata iniziale
             gameState.style.display = 'flex';
@@ -1278,6 +1060,11 @@
             // Avvia il gioco quando si clicca su "START GAME"
             startBtn.addEventListener('click', initGame);
             startBtn.addEventListener('touchstart', initGame);
+            
+            // Gestione input touch
+            canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+            canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+            canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
             
             // Ridimensiona il canvas quando la finestra cambia dimensione
             window.addEventListener('resize', resizeCanvas);
