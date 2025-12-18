@@ -109,47 +109,90 @@
             transform: scale(0.95);
         }
         
-        #joystickContainer {
+        #triangleControl {
             position: relative;
             width: 160px;
-            height: 80px;
+            height: 140px;
             margin-bottom: 10px;
             z-index: 4;
         }
         
-        #joystickBase {
-            position: absolute;
-            width: 160px;
-            height: 80px;
-            border: 2px solid #fff;
-            border-bottom: none;
-            border-radius: 80px 80px 0 0;
-            background-color: rgba(0, 0, 0, 0.8);
-            bottom: 0;
-            left: 0;
-        }
-        
-        #joystickHandle {
-            position: absolute;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.3);
-            border: 2px solid #fff;
-            bottom: 15px;
-            left: 55px;
-            z-index: 6;
-            pointer-events: none;
-            transition: transform 0.1s;
-        }
-        
-        #joystickActiveArea {
+        #triangleBase {
             position: absolute;
             width: 100%;
             height: 100%;
-            border-radius: 80px 80px 0 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+        
+        .triangle-zone {
+            position: absolute;
             cursor: pointer;
-            z-index: 5;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .triangle-zone:active {
+            opacity: 1;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        #triangleUp {
+            width: 0;
+            height: 0;
+            border-left: 50px solid transparent;
+            border-right: 50px solid transparent;
+            border-bottom: 80px solid rgba(255, 255, 255, 0.3);
+            bottom: 40px;
+            left: 30px;
+        }
+        
+        #triangleLeft {
+            width: 0;
+            height: 0;
+            border-top: 40px solid transparent;
+            border-right: 70px solid rgba(255, 255, 255, 0.3);
+            border-bottom: 40px solid transparent;
+            bottom: 30px;
+            left: 0;
+        }
+        
+        #triangleRight {
+            width: 0;
+            height: 0;
+            border-top: 40px solid transparent;
+            border-left: 70px solid rgba(255, 255, 255, 0.3);
+            border-bottom: 40px solid transparent;
+            bottom: 30px;
+            right: 0;
+        }
+        
+        #triangleUp:before {
+            content: "▲";
+            position: absolute;
+            top: 45px;
+            left: -15px;
+        }
+        
+        #triangleLeft:before {
+            content: "◀";
+            position: absolute;
+            top: -12px;
+            left: -50px;
+        }
+        
+        #triangleRight:before {
+            content: "▶";
+            position: absolute;
+            top: -12px;
+            left: 20px;
         }
         
         #gameState {
@@ -205,7 +248,7 @@
         }
         
         /* Rimuovi i bordi arancioni di focus su mobile */
-        .control-circle:focus, #startBtn:focus {
+        .control-circle:focus, #startBtn:focus, .triangle-zone:focus {
             outline: none;
         }
         
@@ -222,22 +265,46 @@
                 font-size: 20px;
             }
             
-            #joystickContainer {
+            #triangleControl {
                 width: 140px;
-                height: 70px;
+                height: 120px;
             }
             
-            #joystickBase {
-                width: 140px;
-                height: 70px;
-                border-radius: 70px 70px 0 0;
+            #triangleUp {
+                border-left: 45px solid transparent;
+                border-right: 45px solid transparent;
+                border-bottom: 70px solid rgba(255, 255, 255, 0.3);
+                bottom: 35px;
+                left: 25px;
             }
             
-            #joystickHandle {
-                width: 40px;
-                height: 40px;
-                bottom: 10px;
-                left: 50px;
+            #triangleLeft {
+                border-top: 35px solid transparent;
+                border-right: 60px solid rgba(255, 255, 255, 0.3);
+                border-bottom: 35px solid transparent;
+                bottom: 25px;
+            }
+            
+            #triangleRight {
+                border-top: 35px solid transparent;
+                border-left: 60px solid rgba(255, 255, 255, 0.3);
+                border-bottom: 35px solid transparent;
+                bottom: 25px;
+            }
+            
+            #triangleUp:before {
+                top: 40px;
+                left: -13px;
+            }
+            
+            #triangleLeft:before {
+                top: -10px;
+                left: -45px;
+            }
+            
+            #triangleRight:before {
+                top: -10px;
+                left: 15px;
             }
             
             #uiOverlay {
@@ -260,22 +327,49 @@
                 font-size: 20px;
             }
             
-            #joystickContainer {
+            #triangleControl {
                 width: 130px;
-                height: 65px;
+                height: 110px;
             }
             
-            #joystickBase {
-                width: 130px;
-                height: 65px;
-                border-radius: 65px 65px 0 0;
+            #triangleUp {
+                border-left: 40px solid transparent;
+                border-right: 40px solid transparent;
+                border-bottom: 65px solid rgba(255, 255, 255, 0.3);
+                bottom: 30px;
+                left: 25px;
             }
             
-            #joystickHandle {
-                width: 35px;
-                height: 35px;
-                bottom: 8px;
-                left: 47px;
+            #triangleLeft {
+                border-top: 30px solid transparent;
+                border-right: 55px solid rgba(255, 255, 255, 0.3);
+                border-bottom: 30px solid transparent;
+                bottom: 25px;
+            }
+            
+            #triangleRight {
+                border-top: 30px solid transparent;
+                border-left: 55px solid rgba(255, 255, 255, 0.3);
+                border-bottom: 30px solid transparent;
+                bottom: 25px;
+            }
+            
+            #triangleUp:before {
+                top: 35px;
+                left: -12px;
+                font-size: 20px;
+            }
+            
+            #triangleLeft:before {
+                top: -8px;
+                left: -40px;
+                font-size: 20px;
+            }
+            
+            #triangleRight:before {
+                top: -8px;
+                left: 13px;
+                font-size: 20px;
             }
             
             #gameState h2 {
@@ -298,22 +392,49 @@
                 font-size: 18px;
             }
             
-            #joystickContainer {
+            #triangleControl {
                 width: 120px;
-                height: 60px;
+                height: 90px;
             }
             
-            #joystickBase {
-                width: 120px;
-                height: 60px;
-                border-radius: 60px 60px 0 0;
+            #triangleUp {
+                border-left: 35px solid transparent;
+                border-right: 35px solid transparent;
+                border-bottom: 55px solid rgba(255, 255, 255, 0.3);
+                bottom: 25px;
+                left: 25px;
             }
             
-            #joystickHandle {
-                width: 30px;
-                height: 30px;
-                bottom: 5px;
-                left: 45px;
+            #triangleLeft {
+                border-top: 25px solid transparent;
+                border-right: 50px solid rgba(255, 255, 255, 0.3);
+                border-bottom: 25px solid transparent;
+                bottom: 20px;
+            }
+            
+            #triangleRight {
+                border-top: 25px solid transparent;
+                border-left: 50px solid rgba(255, 255, 255, 0.3);
+                border-bottom: 25px solid transparent;
+                bottom: 20px;
+            }
+            
+            #triangleUp:before {
+                top: 30px;
+                left: -10px;
+                font-size: 18px;
+            }
+            
+            #triangleLeft:before {
+                top: -7px;
+                left: -35px;
+                font-size: 18px;
+            }
+            
+            #triangleRight:before {
+                top: -7px;
+                left: 10px;
+                font-size: 18px;
             }
         }
     </style>
@@ -328,10 +449,12 @@
         <div id="controls">
             <div class="control-circle" id="fireBtn">S</div>
             
-            <div id="joystickContainer">
-                <div id="joystickBase"></div>
-                <div id="joystickHandle"></div>
-                <div id="joystickActiveArea"></div>
+            <div id="triangleControl">
+                <div id="triangleBase">
+                    <div class="triangle-zone" id="triangleUp"></div>
+                    <div class="triangle-zone" id="triangleLeft"></div>
+                    <div class="triangle-zone" id="triangleRight"></div>
+                </div>
             </div>
             
             <div class="control-circle" id="hyperspaceBtn">H</div>
@@ -378,12 +501,10 @@
         let ufoSpawnTimer = 0;
         let gameOver = false;
         
-        // Variabili per il joystick
-        let joystickActive = false;
-        let joystickRotation = 0;
-        let joystickThrust = false;
-        let joystickX = 0;
-        let joystickY = 0;
+        // Variabili per i controlli
+        let isThrusting = false;
+        let isRotatingLeft = false;
+        let isRotatingRight = false;
         
         // Classe della navicella
         class Ship {
@@ -410,14 +531,16 @@
             }
             
             update() {
-                // Rotazione dal joystick
-                this.rotation = joystickRotation;
+                // Rotazione dai controlli
+                this.rotation = 0;
+                if (isRotatingLeft) this.rotation -= this.rotationSpeed;
+                if (isRotatingRight) this.rotation += this.rotationSpeed;
                 
                 // Rotazione
                 this.angle += this.rotation;
                 
-                // Accelerazione dal joystick
-                this.thrust = joystickThrust;
+                // Accelerazione dai controlli
+                this.thrust = isThrusting;
                 
                 // Accelerazione
                 if (this.thrust) {
@@ -773,6 +896,11 @@
             level = 1;
             gameOver = false;
             
+            // Reset controlli
+            isThrusting = false;
+            isRotatingLeft = false;
+            isRotatingRight = false;
+            
             // Crea asteroidi iniziali
             for (let i = 0; i < 4 + level; i++) {
                 asteroids.push(new Asteroid());
@@ -931,6 +1059,11 @@
             gameActive = false;
             gameOver = true;
             
+            // Disattiva tutti i controlli
+            isThrusting = false;
+            isRotatingLeft = false;
+            isRotatingRight = false;
+            
             gameState.innerHTML = `
                 <h2>GAME OVER</h2>
                 <p>Final score: ${score}</p>
@@ -1033,10 +1166,11 @@
         function setupTouchControls() {
             const fireBtn = document.getElementById('fireBtn');
             const hyperspaceBtn = document.getElementById('hyperspaceBtn');
-            const joystickArea = document.getElementById('joystickActiveArea');
-            const joystickHandle = document.getElementById('joystickHandle');
+            const triangleUp = document.getElementById('triangleUp');
+            const triangleLeft = document.getElementById('triangleLeft');
+            const triangleRight = document.getElementById('triangleRight');
             
-            // Tasto SPARA (cerchio sinistro - ora invertito)
+            // Tasto SPARA (cerchio sinistro)
             fireBtn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 if (gameActive && ship) {
@@ -1054,13 +1188,15 @@
                 // Feedback visivo
                 fireBtn.style.backgroundColor = '#fff';
                 fireBtn.style.color = '#000';
-                setTimeout(() => {
-                    fireBtn.style.backgroundColor = '';
-                    fireBtn.style.color = '';
-                }, 100);
             });
             
-            // Tasto IPERSPAZIO (cerchio destro - ora invertito)
+            fireBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                fireBtn.style.backgroundColor = '';
+                fireBtn.style.color = '';
+            });
+            
+            // Tasto IPERSPAZIO (cerchio destro)
             hyperspaceBtn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 if (gameActive && ship) {
@@ -1070,131 +1206,62 @@
                 // Feedback visivo
                 hyperspaceBtn.style.backgroundColor = '#fff';
                 hyperspaceBtn.style.color = '#000';
-                setTimeout(() => {
-                    hyperspaceBtn.style.backgroundColor = '';
-                    hyperspaceBtn.style.color = '';
-                }, 100);
             });
             
-            // Joystick a semicerchio
-            const joystickContainer = document.getElementById('joystickContainer');
-            
-            // Gestione del joystick
-            function handleJoystickStart(e) {
+            hyperspaceBtn.addEventListener('touchend', (e) => {
                 e.preventDefault();
-                joystickActive = true;
-                updateJoystick(e.touches[0]);
-            }
+                hyperspaceBtn.style.backgroundColor = '';
+                hyperspaceBtn.style.color = '';
+            });
             
-            function handleJoystickMove(e) {
-                if (!joystickActive) return;
+            // Controllo triangolo: UP (accelerazione)
+            triangleUp.addEventListener('touchstart', (e) => {
                 e.preventDefault();
-                updateJoystick(e.touches[0]);
-            }
+                isThrusting = true;
+                triangleUp.style.opacity = '1';
+            });
             
-            function handleJoystickEnd(e) {
+            triangleUp.addEventListener('touchend', (e) => {
                 e.preventDefault();
-                joystickActive = false;
-                joystickRotation = 0;
-                joystickThrust = false;
-                joystickX = 0;
-                joystickY = 0;
-                
-                // Riporta il joystick alla posizione centrale
-                joystickHandle.style.transform = 'translate(0, 0)';
-            }
+                isThrusting = false;
+                triangleUp.style.opacity = '0.7';
+            });
             
-            function updateJoystick(touch) {
-                const rect = joystickContainer.getBoundingClientRect();
-                
-                // Calcola le coordinate relative al joystick
-                const touchX = touch.clientX - rect.left;
-                const touchY = touch.clientY - rect.top;
-                
-                // Coordinate relative al centro del joystick
-                const centerX = rect.width / 2;
-                const centerY = rect.height;
-                
-                const relX = touchX - centerX;
-                const relY = touchY - centerY;
-                
-                // Calcola la distanza dal centro
-                const distance = Math.sqrt(relX * relX + relY * relY);
-                const maxDistance = rect.width / 2;
-                
-                // Limita la distanza al raggio del joystick
-                const limitedDistance = Math.min(distance, maxDistance);
-                
-                // Calcola l'angolo
-                let angle = Math.atan2(relY, relX);
-                
-                // Normalizza l'angolo tra 0 e 360 gradi
-                if (angle < 0) angle += 2 * Math.PI;
-                
-                // Calcola le coordinate limitate
-                const limitedX = Math.cos(angle) * limitedDistance;
-                const limitedY = Math.sin(angle) * limitedDistance;
-                
-                // Aggiorna la posizione visiva del joystick
-                joystickHandle.style.transform = `translate(${limitedX}px, ${limitedY}px)`;
-                
-                // Salva le coordinate per l'intensità
-                joystickX = limitedX / maxDistance;
-                joystickY = limitedY / maxDistance;
-                
-                // Determina l'azione in base all'angolo
-                // Semicerchio: 0° a destra, 90° in basso, 180° a sinistra
-                // Vogliamo che la parte superiore (da circa 240° a 300°) sia per l'accelerazione
-                
-                // Converti in gradi per facilità
-                const degrees = angle * (180 / Math.PI);
-                
-                // Sistema di controllo migliorato:
-                // - Se il tocco è nella parte superiore del semicerchio (da 210° a 330°): accelerazione
-                // - Se il tocco è nella parte sinistra (da 150° a 210°): rotazione a sinistra
-                // - Se il tocco è nella parte destra (da 330° a 30°): rotazione a destra
-                
-                if (degrees >= 210 && degrees <= 330) {
-                    // Parte superiore: accelerazione
-                    joystickRotation = 0;
-                    joystickThrust = true;
-                    
-                    // Intensità in base a quanto in alto si tocca
-                    const thrustIntensity = 1 - (degrees - 210) / 120;
-                    ship.thrustPower = 0.15 * thrustIntensity;
-                } 
-                else if (degrees >= 150 && degrees < 210) {
-                    // Parte sinistra: rotazione a sinistra
-                    joystickRotation = -ship.rotationSpeed * (1 - (degrees - 150) / 60);
-                    joystickThrust = false;
-                }
-                else if (degrees >= 330 || degrees <= 30) {
-                    // Parte destra: rotazione a destra
-                    let intensity;
-                    if (degrees >= 330) {
-                        intensity = (degrees - 330) / 60;
-                    } else {
-                        intensity = (degrees + 30) / 60;
-                    }
-                    joystickRotation = ship.rotationSpeed * intensity;
-                    joystickThrust = false;
-                }
-                else {
-                    // Zone intermedie: nessuna azione
-                    joystickRotation = 0;
-                    joystickThrust = false;
-                }
-            }
+            // Controllo triangolo: LEFT (rotazione sinistra)
+            triangleLeft.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                isRotatingLeft = true;
+                triangleLeft.style.opacity = '1';
+            });
             
-            // Aggiungi event listeners per il joystick
-            joystickArea.addEventListener('touchstart', handleJoystickStart);
-            joystickArea.addEventListener('touchmove', handleJoystickMove);
-            joystickArea.addEventListener('touchend', handleJoystickEnd);
+            triangleLeft.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                isRotatingLeft = false;
+                triangleLeft.style.opacity = '0.7';
+            });
+            
+            // Controllo triangolo: RIGHT (rotazione destra)
+            triangleRight.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                isRotatingRight = true;
+                triangleRight.style.opacity = '1';
+            });
+            
+            triangleRight.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                isRotatingRight = false;
+                triangleRight.style.opacity = '0.7';
+            });
+            
+            // Gestione del multitouch: se il dito esce dall'elemento, disattiva il controllo
+            document.addEventListener('touchmove', (e) => {
+                // Non blocchiamo completamente il touchmove per permettere lo spostamento tra i controlli
+            }, { passive: true });
             
             // Previeni il comportamento predefinito del touch per evitare lo zoom
-            document.addEventListener('touchmove', (e) => {
+            document.addEventListener('touchstart', (e) => {
                 if (e.target.classList.contains('control-circle') || 
-                    e.target.id === 'joystickActiveArea') {
+                    e.target.classList.contains('triangle-zone')) {
                     e.preventDefault();
                 }
             }, { passive: false });
