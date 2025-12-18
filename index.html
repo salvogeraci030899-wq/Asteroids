@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Asteroids 1979 - Mobile</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        #gameCanvas {
+            background-color: #000;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        #uiOverlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 2;
+        }
+        
+        #scoreDisplay, #livesDisplay {
+            font-size: 20px;
+            color: #fff;
+            text-shadow: 0 0 3px #fff;
+            font-weight: bold;
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            padding: 15px;
+            gap: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 3;
+            border-top: 1px solid #fff;
+        }
+        
+        .control-row {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            gap: 15px;
+        }
+        
+        .control-btn {
+            background-color: #000;
+            color: #fff;
+            border: 2px solid #fff;
+            border-radius: 10px;
+            font-size: 22px;
+            padding: 18px 30px;
+            min-width: 140px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .control-btn:active {
+            background-color: #fff;
+            color: #000;
+            transform: scale(0.95);
+        }
+        
+        #dpad {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+        }
+        
+        .dpad-btn {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .dpad-btn:active {
+            background-color: #fff;
+            color: #000;
+        }
+        
+        #up {
+            top: 0;
+            left: 65px;
+        }
+        
+        #left {
+            top: 65px;
+            left: 0;
+        }
+        
+        #right {
+            top: 65px;
+            right: 0;
+        }
+        
+        #down {
+            bottom: 0;
+            left: 65px;
+        }
+        
+        #center {
+            top: 65px;
+            left: 65px;
+            background-color: rgba(255, 255, 255, 0.1);
+            pointer-events: none;
+        }
+        
+        #gameState {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 10;
+            padding: 20px;
+        }
+        
+        #gameState h2 {
+            margin-bottom: 20px;
+            color: #fff;
+            font-size: 36px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        
+        #gameState p {
+            margin: 10px 0;
+            font-size: 20px;
+            color: #fff;
+            max-width: 90%;
+            line-height: 1.5;
+        }
+        
+        #startBtn {
+            background-color: #fff;
+            color: #000;
+            border: none;
+            font-size: 24px;
+            padding: 15px 40px;
+            margin-top: 30px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        #startBtn:active {
+            background-color: #ccc;
+            transform: scale(0.98);
+        }
+        
+        #instructions {
+            position: absolute;
+            bottom: 180px;
+            left: 0;
+            right: 0;
+            padding: 10px 15px;
+            font-size: 14px;
+            line-height: 1.4;
+            text-align: center;
+            color: #aaa;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1;
+            border-top: 1px solid #fff;
+            border-bottom: 1px solid #fff;
+        }
+        
+        /* Rimuovi i bordi arancioni di focus su mobile */
+        .control-btn:focus, .dpad-btn:focus, #startBtn:focus {
+            outline: none;
+        }
+        
+        /* Media queries per schermi più piccoli */
+        @media (max-height: 700px) {
+            #controls {
+                padding: 10px;
+                gap: 10px;
+            }
+            
+            .control-btn {
+                padding: 12px 20px;
+                min-width: 120px;
+                font-size: 18px;
+            }
+            
+            #dpad {
+                width: 160px;
+                height: 160px;
+            }
+            
+            .dpad-btn {
+                width: 60px;
+                height: 60px;
+                font-size: 22px;
+            }
+            
+            #up {
+                left: 50px;
+            }
+            
+            #left {
+                top: 50px;
+            }
+            
+            #right {
+                top: 50px;
+            }
+            
+            #down {
+                left: 50px;
+            }
+            
+            #center {
+                top: 50px;
+                left: 50px;
+            }
+            
+            #instructions {
+                bottom: 150px;
+                font-size: 12px;
+            }
+            
+            #uiOverlay {
+                top: 5px;
+            }
+            
+            #scoreDisplay, #livesDisplay {
+                font-size: 18px;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .control-btn {
+                padding: 15px 20px;
+                min-width: 110px;
+                font-size: 18px;
+            }
+            
+            #instructions {
+                font-size: 12px;
+                padding: 8px 10px;
+            }
+            
+            #gameState h2 {
+                font-size: 28px;
+            }
+            
+            #gameState p {
+                font-size: 18px;
+            }
+        }
+        
+        @media (max-height: 500px) {
+            #controls {
+                position: relative;
+                background: transparent;
+                border-top: none;
+            }
+            
+            #instructions {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        <div id="uiOverlay">
+            <div id="scoreDisplay">PUNTEGGIO: 0</div>
+            <div id="livesDisplay">NAVI: 3</div>
+        </div>
+        <div id="instructions">
+            CONTROLLI: Usa i tasti freccia per muoverti, SPARA per sparare, IPERSPAZIO per teletrasporto casuale (con rischio). Ogni asteroide grande vale 20 punti, medio 50 punti, piccolo 100 punti. Gli UFO valgono 200 o 1000 punti.
+        </div>
+        <div id="controls">
+            <div class="control-row">
+                <button class="control-btn" id="fireBtn">SPARA</button>
+                <button class="control-btn" id="hyperspaceBtn">IPERSPAZIO</button>
+            </div>
+            
+            <div class="control-row">
+                <div id="dpad">
+                    <div class="dpad-btn" id="up">↑</div>
+                    <div class="dpad-btn" id="left">←</div>
+                    <div class="dpad-btn" id="center">•</div>
+                    <div class="dpad-btn" id="right">→</div>
+                    <div class="dpad-btn" id="down">↓</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="gameState">
+            <h2>ASTEROIDS 1979</h2>
+            <p>Distruggi tutti gli asteroidi!</p>
+            <p>Evita collisioni con asteroidi e UFO</p>
+            <p>Ogni asteroide si divide in pezzi più piccoli</p>
+            <button id="startBtn">INIZIA GIOCO</button>
+        </div>
+    </div>
+
+    <script>
+        // Inizializzazione del canvas
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameState = document.getElementById('gameState');
+        const startBtn = document.getElementById('startBtn');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const livesDisplay = document.getElementById('livesDisplay');
+        
+        // Imposta le dimensioni del canvas a schermo intero
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        // Variabili di gioco
+        let gameActive = false;
+        let score = 0;
+        let lives = 3;
+        let level = 1;
+        let asteroids = [];
+        let bullets = [];
+        let ufos = [];
+        let particles = [];
+        let keys = {};
+        let ship;
+        let lastShotTime = 0;
+        let ufoSpawnTimer = 0;
+        let gameOver = false;
+        
+        // Classe della navicella
+        class Ship {
+            constructor() {
+                this.reset();
+            }
+            
+            reset() {
+                this.x = canvas.width / 2;
+                this.y = canvas.height / 2;
+                this.radius = 15;
+                this.angle = -Math.PI / 2; // Punta verso l'alto
+                this.rotation = 0;
+                this.velX = 0;
+                this.velY = 0;
+                this.thrust = false;
+                this.thrustPower = 0.1;
+                this.rotationSpeed = 0.08;
+                this.friction = 0.98;
+                this.invincible = false;
+                this.invincibleTimer = 0;
+                this.blinkTimer = 0;
+                this.visible = true;
+            }
+            
+            update() {
+                // Rotazione
+                this.angle += this.rotation;
+                
+                // Accelerazione
+                if (this.thrust) {
+                    this.velX += Math.cos(this.angle) * this.thrustPower;
+                    this.velY += Math.sin(this.angle) * this.thrustPower;
+                    
+                    // Aggiungi particelle di propulsione
+                    for (let i = 0; i < 3; i++) {
+                        particles.push({
+                            x: this.x - Math.cos(this.angle) * this.radius,
+                            y: this.y - Math.sin(this.angle) * this.radius,
+                            velX: Math.cos(this.angle + Math.PI + (Math.random() * 0.4 - 0.2)) * (3 + Math.random() * 3),
+                            velY: Math.sin(this.angle + Math.PI + (Math.random() * 0.4 - 0.2)) * (3 + Math.random() * 3),
+                            life: 20 + Math.random() * 20,
+                            color: '#fff'
+                        });
+                    }
+                }
+                
+                // Applica attrito
+                this.velX *= this.friction;
+                this.velY *= this.friction;
+                
+                // Movimento
+                this.x += this.velX;
+                this.y += this.velY;
+                
+                // Gestione bordi (wrap-around)
+                if (this.x < -this.radius) this.x = canvas.width + this.radius;
+                if (this.x > canvas.width + this.radius) this.x = -this.radius;
+                if (this.y < -this.radius) this.y = canvas.height + this.radius;
+                if (this.y > canvas.height + this.radius) this.y = -this.radius;
+                
+                // Gestione invincibilità dopo la respawn
+                if (this.invincible) {
+                    this.invincibleTimer--;
+                    this.blinkTimer++;
+                    
+                    if (this.blinkTimer > 5) {
+                        this.visible = !this.visible;
+                        this.blinkTimer = 0;
+                    }
+                    
+                    if (this.invincibleTimer <= 0) {
+                        this.invincible = false;
+                        this.visible = true;
+                    }
+                }
+            }
+            
+            draw() {
+                if (!this.visible) return;
+                
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                
+                // Disegna la navicella (triangolo)
+                ctx.beginPath();
+                ctx.moveTo(this.radius, 0);
+                ctx.lineTo(-this.radius, -this.radius * 0.7);
+                ctx.lineTo(-this.radius, this.radius * 0.7);
+                ctx.closePath();
+                ctx.stroke();
+                
+                // Disegna il propulsore se attivo
+                if (this.thrust) {
+                    ctx.beginPath();
+                    ctx.moveTo(-this.radius, -this.radius * 0.4);
+                    ctx.lineTo(-this.radius * 1.5, 0);
+                    ctx.lineTo(-this.radius, this.radius * 0.4);
+                    ctx.strokeStyle = '#fff';
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
+            }
+            
+            hyperspace() {
+                // Teletrasporto casuale con un piccolo rischio di esplosione (1%)
+                if (Math.random() < 0.01) {
+                    this.explode();
+                    lives--;
+                    updateLivesDisplay();
+                    if (lives <= 0) {
+                        endGame();
+                    } else {
+                        this.reset();
+                        this.invincible = true;
+                        this.invincibleTimer = 120;
+                    }
+                } else {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.velX = 0;
+                    this.velY = 0;
+                    this.invincible = true;
+                    this.invincibleTimer = 60;
+                }
+            }
+            
+            explode() {
+                // Crea particelle di esplosione
+                for (let i = 0; i < 30; i++) {
+                    particles.push({
+                        x: this.x,
+                        y: this.y,
+                        velX: (Math.random() - 0.5) * 8,
+                        velY: (Math.random() - 0.5) * 8,
+                        life: 30 + Math.random() * 30,
+                        color: '#fff'
+                    });
+                }
+            }
+        }
+        
+        // Classe degli asteroidi
+        class Asteroid {
+            constructor(x, y, size, velX, velY) {
+                this.x = x || Math.random() * canvas.width;
+                this.y = y || Math.random() * canvas.height;
+                this.size = size || 3; // 3 = grande, 2 = medio, 1 = piccolo
+                this.radius = this.size * 10;
+                this.velX = velX || (Math.random() - 0.5) * 2;
+                this.velY = velY || (Math.random() - 0.5) * 2;
+                this.rotation = (Math.random() - 0.5) * 0.05;
+                this.angle = Math.random() * Math.PI * 2;
+                this.vertices = Math.floor(Math.random() * 5) + 7;
+                this.offsets = [];
+                
+                // Crea una forma irregolare
+                for (let i = 0; i < this.vertices; i++) {
+                    this.offsets.push(Math.random() * 0.4 + 0.8);
+                }
+            }
+            
+            update() {
+                this.x += this.velX;
+                this.y += this.velY;
+                this.angle += this.rotation;
+                
+                // Gestione bordi (wrap-around)
+                if (this.x < -this.radius) this.x = canvas.width + this.radius;
+                if (this.x > canvas.width + this.radius) this.x = -this.radius;
+                if (this.y < -this.radius) this.y = canvas.height + this.radius;
+                if (this.y > canvas.height + this.radius) this.y = -this.radius;
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                
+                // Disegna l'asteroide poligonale
+                ctx.beginPath();
+                for (let i = 0; i < this.vertices; i++) {
+                    const angle = (i / this.vertices) * Math.PI * 2;
+                    const radius = this.radius * this.offsets[i];
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.closePath();
+                ctx.stroke();
+                
+                ctx.restore();
+            }
+            
+            split() {
+                const newAsteroids = [];
+                if (this.size > 1) {
+                    for (let i = 0; i < 2; i++) {
+                        newAsteroids.push(new Asteroid(
+                            this.x, 
+                            this.y, 
+                            this.size - 1,
+                            this.velX * 1.5 + (Math.random() - 0.5),
+                            this.velY * 1.5 + (Math.random() - 0.5)
+                        ));
+                    }
+                }
+                
+                // Aggiungi punteggio
+                if (this.size === 3) score += 20;
+                else if (this.size === 2) score += 50;
+                else if (this.size === 1) score += 100;
+                
+                updateScoreDisplay();
+                
+                // Crea particelle di esplosione
+                for (let i = 0; i < 15; i++) {
+                    particles.push({
+                        x: this.x,
+                        y: this.y,
+                        velX: (Math.random() - 0.5) * 6,
+                        velY: (Math.random() - 0.5) * 6,
+                        life: 20 + Math.random() * 20,
+                        color: '#fff'
+                    });
+                }
+                
+                return newAsteroids;
+            }
+        }
+        
+        // Classe dei proiettili
+        class Bullet {
+            constructor(x, y, angle) {
+                this.x = x;
+                this.y = y;
+                this.velX = Math.cos(angle) * 8;
+                this.velY = Math.sin(angle) * 8;
+                this.radius = 2;
+                this.life = 60; // Durata del proiettile in frame
+            }
+            
+            update() {
+                this.x += this.velX;
+                this.y += this.velY;
+                this.life--;
+                
+                // Gestione bordi (wrap-around)
+                if (this.x < -this.radius) this.x = canvas.width + this.radius;
+                if (this.x > canvas.width + this.radius) this.x = -this.radius;
+                if (this.y < -this.radius) this.y = canvas.height + this.radius;
+                if (this.y > canvas.height + this.radius) this.y = -this.radius;
+            }
+            
+            draw() {
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // Classe degli UFO
+        class UFO {
+            constructor(isLarge) {
+                this.isLarge = isLarge || Math.random() > 0.5;
+                this.radius = this.isLarge ? 20 : 10;
+                this.x = Math.random() > 0.5 ? -this.radius : canvas.width + this.radius;
+                this.y = Math.random() * canvas.height;
+                this.velX = (this.x > canvas.width / 2 ? -1 : 1) * (this.isLarge ? 1 : 2);
+                this.velY = (Math.random() - 0.5) * 0.5;
+                this.shotTimer = 0;
+                this.shotDelay = this.isLarge ? 100 : 50;
+                this.points = this.isLarge ? 200 : 1000;
+            }
+            
+            update() {
+                this.x += this.velX;
+                this.y += this.velY;
+                this.shotTimer++;
+                
+                // Rimuovi se esce dallo schermo
+                if (this.x < -this.radius * 2 || this.x > canvas.width + this.radius * 2) {
+                    return false;
+                }
+                
+                // Spara occasionalmente verso la navicella
+                if (this.shotTimer > this.shotDelay && ship && Math.random() < 0.02) {
+                    this.shoot();
+                    this.shotTimer = 0;
+                }
+                
+                return true;
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                
+                // Disegna UFO (forma a piattino)
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius * 0.5, 0, Math.PI);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(-this.radius, 0);
+                ctx.lineTo(this.radius, 0);
+                ctx.stroke();
+                
+                ctx.restore();
+            }
+            
+            shoot() {
+                if (!ship) return;
+                
+                const angleToShip = Math.atan2(ship.y - this.y, ship.x - this.x);
+                
+                bullets.push(new Bullet(
+                    this.x,
+                    this.y,
+                    angleToShip + (Math.random() - 0.5) * (this.isLarge ? 0.3 : 0.1)
+                ));
+            }
+            
+            explode() {
+                score += this.points;
+                updateScoreDisplay();
+                
+                // Crea particelle di esplosione
+                for (let i = 0; i < 25; i++) {
+                    particles.push({
+                        x: this.x,
+                        y: this.y,
+                        velX: (Math.random() - 0.5) * 8,
+                        velY: (Math.random() - 0.5) * 8,
+                        life: 30 + Math.random() * 30,
+                        color: '#fff'
+                    });
+                }
+            }
+        }
+        
+        // Inizializza il gioco
+        function initGame() {
+            ship = new Ship();
+            asteroids = [];
+            bullets = [];
+            ufos = [];
+            particles = [];
+            score = 0;
+            lives = 3;
+            level = 1;
+            gameOver = false;
+            
+            // Crea asteroidi iniziali
+            for (let i = 0; i < 4 + level; i++) {
+                asteroids.push(new Asteroid());
+            }
+            
+            updateScoreDisplay();
+            updateLivesDisplay();
+            gameState.style.display = 'none';
+            gameActive = true;
+            
+            // Nascondi temporaneamente le istruzioni dopo l'inizio
+            setTimeout(() => {
+                document.getElementById('instructions').style.opacity = '0.5';
+            }, 3000);
+            
+            // Avvia il game loop
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Aggiorna il display del punteggio
+        function updateScoreDisplay() {
+            scoreDisplay.textContent = `PUNTEGGIO: ${score}`;
+        }
+        
+        // Aggiorna il display delle vite
+        function updateLivesDisplay() {
+            livesDisplay.textContent = `NAVI: ${lives}`;
+        }
+        
+        // Controlla le collisioni
+        function checkCollisions() {
+            // Collisioni tra proiettili e asteroidi
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                for (let j = asteroids.length - 1; j >= 0; j--) {
+                    const dx = bullets[i].x - asteroids[j].x;
+                    const dy = bullets[i].y - asteroids[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < bullets[i].radius + asteroids[j].radius) {
+                        // Rimuovi il proiettile
+                        bullets.splice(i, 1);
+                        
+                        // Divide l'asteroide e aggiungi i nuovi asteroidi
+                        const newAsteroids = asteroids[j].split();
+                        asteroids.splice(j, 1);
+                        asteroids.push(...newAsteroids);
+                        
+                        break;
+                    }
+                }
+            }
+            
+            // Collisioni tra proiettili e UFO
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                for (let j = ufos.length - 1; j >= 0; j--) {
+                    const dx = bullets[i].x - ufos[j].x;
+                    const dy = bullets[i].y - ufos[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < bullets[i].radius + ufos[j].radius) {
+                        // Rimuovi il proiettile
+                        bullets.splice(i, 1);
+                        
+                        // Distruggi l'UFO
+                        ufos[j].explode();
+                        ufos.splice(j, 1);
+                        
+                        break;
+                    }
+                }
+            }
+            
+            // Collisioni tra navicella e asteroidi
+            if (ship && !ship.invincible) {
+                for (let i = asteroids.length - 1; i >= 0; i--) {
+                    const dx = ship.x - asteroids[i].x;
+                    const dy = ship.y - asteroids[i].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < ship.radius + asteroids[i].radius) {
+                        // Distruggi la navicella
+                        ship.explode();
+                        lives--;
+                        updateLivesDisplay();
+                        
+                        if (lives <= 0) {
+                            endGame();
+                        } else {
+                            // Respaw della navicella
+                            ship.reset();
+                            ship.invincible = true;
+                            ship.invincibleTimer = 120;
+                        }
+                        
+                        // Divide l'asteroide
+                        const newAsteroids = asteroids[i].split();
+                        asteroids.splice(i, 1);
+                        asteroids.push(...newAsteroids);
+                        
+                        break;
+                    }
+                }
+            }
+            
+            // Collisioni tra navicella e UFO
+            if (ship && !ship.invincible) {
+                for (let i = ufos.length - 1; i >= 0; i--) {
+                    const dx = ship.x - ufos[i].x;
+                    const dy = ship.y - ufos[i].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < ship.radius + ufos[i].radius) {
+                        // Distruggi la navicella
+                        ship.explode();
+                        lives--;
+                        updateLivesDisplay();
+                        
+                        if (lives <= 0) {
+                            endGame();
+                        } else {
+                            // Respaw della navicella
+                            ship.reset();
+                            ship.invincible = true;
+                            ship.invincibleTimer = 120;
+                        }
+                        
+                        // Distruggi l'UFO
+                        ufos[i].explode();
+                        ufos.splice(i, 1);
+                        
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Gestisce il passaggio di livello
+        function checkLevelComplete() {
+            if (asteroids.length === 0) {
+                level++;
+                
+                // Crea nuovi asteroidi per il nuovo livello
+                for (let i = 0; i < 4 + level; i++) {
+                    asteroids.push(new Asteroid());
+                }
+                
+                // Resetta la posizione della navicella
+                ship.x = canvas.width / 2;
+                ship.y = canvas.height / 2;
+                ship.velX = 0;
+                ship.velY = 0;
+                
+                // Rimuovi tutti i proiettili e UFO
+                bullets = [];
+                ufos = [];
+            }
+        }
+        
+        // Termina il gioco
+        function endGame() {
+            gameActive = false;
+            gameOver = true;
+            
+            gameState.innerHTML = `
+                <h2>GAME OVER</h2>
+                <p>Punteggio finale: ${score}</p>
+                <p>Livello raggiunto: ${level}</p>
+                <button id="restartBtn">RIGIOCA</button>
+            `;
+            gameState.style.display = 'flex';
+            
+            // Aggiungi event listener al pulsante di riavvio
+            setTimeout(() => {
+                document.getElementById('restartBtn').addEventListener('click', initGame);
+                document.getElementById('restartBtn').addEventListener('touchstart', initGame);
+            }, 100);
+        }
+        
+        // Game loop principale
+        function gameLoop() {
+            if (!gameActive) return;
+            
+            // Aggiorna dimensioni canvas se necessario
+            resizeCanvas();
+            
+            // Pulisci il canvas con una leggera trasparenza per l'effetto scia
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Aggiorna e disegna tutti gli oggetti
+            if (ship) {
+                ship.update();
+                ship.draw();
+            }
+            
+            // Aggiorna e disegna asteroidi
+            for (let i = 0; i < asteroids.length; i++) {
+                asteroids[i].update();
+                asteroids[i].draw();
+            }
+            
+            // Aggiorna e disegna proiettili
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                bullets[i].update();
+                bullets[i].draw();
+                
+                // Rimuovi proiettili scaduti
+                if (bullets[i].life <= 0) {
+                    bullets.splice(i, 1);
+                }
+            }
+            
+            // Aggiorna e disegna UFO
+            for (let i = ufos.length - 1; i >= 0; i--) {
+                if (!ufos[i].update()) {
+                    ufos.splice(i, 1);
+                } else {
+                    ufos[i].draw();
+                }
+            }
+            
+            // Aggiorna e disegna particelle
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].x += particles[i].velX;
+                particles[i].y += particles[i].velY;
+                particles[i].life--;
+                
+                // Disegna particelle
+                ctx.fillStyle = particles[i].color;
+                ctx.beginPath();
+                ctx.arc(particles[i].x, particles[i].y, 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Rimuovi particelle scadute
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+            
+            // Controlla collisioni
+            checkCollisions();
+            
+            // Controlla completamento livello
+            checkLevelComplete();
+            
+            // Gestione spawn UFO
+            ufoSpawnTimer++;
+            if (ufoSpawnTimer > 300 && ufos.length < 1 + Math.floor(level / 3) && Math.random() < 0.01) {
+                ufos.push(new UFO());
+                ufoSpawnTimer = 0;
+            }
+            
+            // Continua il game loop
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Gestione input touch per i controlli mobili
+        function setupTouchControls() {
+            const fireBtn = document.getElementById('fireBtn');
+            const hyperspaceBtn = document.getElementById('hyperspaceBtn');
+            const upBtn = document.getElementById('up');
+            const leftBtn = document.getElementById('left');
+            const rightBtn = document.getElementById('right');
+            const downBtn = document.getElementById('down');
+            
+            // Tasto SPARA
+            fireBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (gameActive && ship) {
+                    const currentTime = Date.now();
+                    if (currentTime - lastShotTime > 200) {
+                        bullets.push(new Bullet(
+                            ship.x + Math.cos(ship.angle) * ship.radius,
+                            ship.y + Math.sin(ship.angle) * ship.radius,
+                            ship.angle
+                        ));
+                        lastShotTime = currentTime;
+                    }
+                }
+                
+                // Feedback visivo
+                fireBtn.style.backgroundColor = '#fff';
+                fireBtn.style.color = '#000';
+                setTimeout(() => {
+                    fireBtn.style.backgroundColor = '';
+                    fireBtn.style.color = '';
+                }, 100);
+            });
+            
+            // Tasto IPERSPAZIO
+            hyperspaceBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (gameActive && ship) {
+                    ship.hyperspace();
+                }
+                
+                // Feedback visivo
+                hyperspaceBtn.style.backgroundColor = '#fff';
+                hyperspaceBtn.style.color = '#000';
+                setTimeout(() => {
+                    hyperspaceBtn.style.backgroundColor = '';
+                    hyperspaceBtn.style.color = '';
+                }, 100);
+            });
+            
+            // Controlli D-Pad
+            let activeRotation = 0;
+            let activeThrust = false;
+            
+            function handleDPad(action, start) {
+                if (!gameActive || !ship) return;
+                
+                switch(action) {
+                    case 'rotateLeft':
+                        activeRotation = start ? -ship.rotationSpeed : 0;
+                        break;
+                    case 'rotateRight':
+                        activeRotation = start ? ship.rotationSpeed : 0;
+                        break;
+                    case 'thrust':
+                        activeThrust = start;
+                        break;
+                }
+                
+                ship.rotation = activeRotation;
+                ship.thrust = activeThrust;
+            }
+            
+            // Assegna eventi touch ai tasti D-Pad
+            upBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                handleDPad('thrust', true);
+                upBtn.style.backgroundColor = '#fff';
+                upBtn.style.color = '#000';
+            });
+            
+            upBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                handleDPad('thrust', false);
+                upBtn.style.backgroundColor = '';
+                upBtn.style.color = '';
+            });
+            
+            leftBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                handleDPad('rotateLeft', true);
+                leftBtn.style.backgroundColor = '#fff';
+                leftBtn.style.color = '#000';
+            });
+            
+            leftBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                handleDPad('rotateLeft', false);
+                leftBtn.style.backgroundColor = '';
+                leftBtn.style.color = '';
+            });
+            
+            rightBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                handleDPad('rotateRight', true);
+                rightBtn.style.backgroundColor = '#fff';
+                rightBtn.style.color = '#000';
+            });
+            
+            rightBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                handleDPad('rotateRight', false);
+                rightBtn.style.backgroundColor = '';
+                rightBtn.style.color = '';
+            });
+            
+            // Previeni il comportamento predefinito del touch per evitare lo zoom
+            document.addEventListener('touchmove', (e) => {
+                if (e.target.classList.contains('control-btn') || 
+                    e.target.classList.contains('dpad-btn')) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            // Disabilita il tasto down (non utilizzato in Asteroids)
+            downBtn.style.opacity = '0.3';
+            downBtn.style.pointerEvents = 'none';
+        }
+        
+        // Inizializza quando la pagina è caricata
+        window.addEventListener('load', () => {
+            resizeCanvas();
+            setupTouchControls();
+            
+            // Mostra la schermata iniziale
+            gameState.style.display = 'flex';
+            
+            // Avvia il gioco quando si clicca su "INIZIA GIOCO"
+            startBtn.addEventListener('click', initGame);
+            startBtn.addEventListener('touchstart', initGame);
+            
+            // Ridimensiona il canvas quando la finestra cambia dimensione
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Previeni il comportamento di scorrimento della pagina sui dispositivi mobili
+            document.addEventListener('touchmove', (e) => {
+                if (gameActive) e.preventDefault();
+            }, { passive: false });
+        });
+        
+        // Disabilita il menu contestuale sul canvas
+        canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+    </script>
+</body>
+</html>
