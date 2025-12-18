@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -140,6 +140,7 @@
             left: 55px;
             z-index: 6;
             pointer-events: none;
+            transition: transform 0.1s;
         }
         
         #joystickActiveArea {
@@ -321,11 +322,11 @@
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         <div id="uiOverlay">
-            <div id="scoreDisplay">PUNTEGGIO: 0</div>
-            <div id="livesDisplay">NAVI: 3</div>
+            <div id="scoreDisplay">SCORE: 0</div>
+            <div id="livesDisplay">SHIPS: 3</div>
         </div>
         <div id="controls">
-            <div class="control-circle" id="hyperspaceBtn">H</div>
+            <div class="control-circle" id="fireBtn">S</div>
             
             <div id="joystickContainer">
                 <div id="joystickBase"></div>
@@ -333,15 +334,15 @@
                 <div id="joystickActiveArea"></div>
             </div>
             
-            <div class="control-circle" id="fireBtn">S</div>
+            <div class="control-circle" id="hyperspaceBtn">H</div>
         </div>
         
         <div id="gameState">
             <h2>ASTEROIDS 1979</h2>
-            <p>Distruggi tutti gli asteroidi!</p>
-            <p>Evita collisioni con asteroidi e UFO</p>
-            <p>Ogni asteroide si divide in pezzi più piccoli</p>
-            <button id="startBtn">INIZIA GIOCO</button>
+            <p>Destroy all asteroids!</p>
+            <p>Avoid collisions with asteroids and UFOs</p>
+            <p>Each asteroid splits into smaller pieces</p>
+            <button id="startBtn">START GAME</button>
         </div>
     </div>
 
@@ -353,6 +354,9 @@
         const startBtn = document.getElementById('startBtn');
         const scoreDisplay = document.getElementById('scoreDisplay');
         const livesDisplay = document.getElementById('livesDisplay');
+        
+        // Zona vietata per i comandi (altezza in pixel)
+        const CONTROL_ZONE_HEIGHT = 140;
         
         // Imposta le dimensioni del canvas a schermo intero
         function resizeCanvas() {
@@ -378,6 +382,8 @@
         let joystickActive = false;
         let joystickRotation = 0;
         let joystickThrust = false;
+        let joystickX = 0;
+        let joystickY = 0;
         
         // Classe della navicella
         class Ship {
@@ -387,7 +393,7 @@
             
             reset() {
                 this.x = canvas.width / 2;
-                this.y = canvas.height / 2;
+                this.y = canvas.height / 2 - CONTROL_ZONE_HEIGHT / 2;
                 this.radius = 15;
                 this.angle = -Math.PI / 2; // Punta verso l'alto
                 this.rotation = 0;
@@ -439,26 +445,16 @@
                 this.x += this.velX;
                 this.y += this.velY;
                 
-                // Gestione bordi (wrap-around)
+                // Gestione bordi (wrap-around) ma non nella zona dei comandi
                 if (this.x < -this.radius) this.x = canvas.width + this.radius;
                 if (this.x > canvas.width + this.radius) this.x = -this.radius;
-                if (this.y < -this.radius) this.y = canvas.height + this.radius;
-                if (this.y > canvas.height + this.radius) this.y = -this.radius;
                 
-                // Gestione invincibilità dopo la respawn
-                if (this.invincible) {
-                    this.invincibleTimer--;
-                    this.blinkTimer++;
-                    
-                    if (this.blinkTimer > 5) {
-                        this.visible = !this.visible;
-                        this.blinkTimer = 0;
-                    }
-                    
-                    if (this.invincibleTimer <= 0) {
-                        this.invincible = false;
-                        this.visible = true;
-                    }
+                // Gestione bordi verticali - MAI nella zona dei comandi
+                if (this.y < -this.radius) {
+                    this.y = canvas.height - CONTROL_ZONE_HEIGHT - this.radius;
+                }
+                if (this.y > canvas.height - CONTROL_ZONE_HEIGHT - this.radius) {
+                    this.y = -this.radius;
                 }
             }
             
@@ -506,8 +502,9 @@
                         this.invincibleTimer = 120;
                     }
                 } else {
+                    // Teletrasporto casuale MA NON nella zona dei comandi
                     this.x = Math.random() * canvas.width;
-                    this.y = Math.random() * canvas.height;
+                    this.y = Math.random() * (canvas.height - CONTROL_ZONE_HEIGHT - this.radius * 2) + this.radius;
                     this.velX = 0;
                     this.velY = 0;
                     this.invincible = true;
@@ -533,9 +530,11 @@
         // Classe degli asteroidi
         class Asteroid {
             constructor(x, y, size, velX, velY) {
+                // Genera asteroidi MAI nella zona dei comandi
+                const safeY = Math.random() * (canvas.height - CONTROL_ZONE_HEIGHT - 60) + 30;
                 this.x = x || Math.random() * canvas.width;
-                this.y = y || Math.random() * canvas.height;
-                this.size = size || 3; // 3 = grande, 2 = medio, 1 = piccolo
+                this.y = y || safeY;
+                this.size = size || 3; // 3 = large, 2 = medium, 1 = small
                 this.radius = this.size * 10;
                 this.velX = velX || (Math.random() - 0.5) * 2;
                 this.velY = velY || (Math.random() - 0.5) * 2;
@@ -555,11 +554,17 @@
                 this.y += this.velY;
                 this.angle += this.rotation;
                 
-                // Gestione bordi (wrap-around)
+                // Gestione bordi (wrap-around) ma non nella zona dei comandi
                 if (this.x < -this.radius) this.x = canvas.width + this.radius;
                 if (this.x > canvas.width + this.radius) this.x = -this.radius;
-                if (this.y < -this.radius) this.y = canvas.height + this.radius;
-                if (this.y > canvas.height + this.radius) this.y = -this.radius;
+                
+                // Gestione bordi verticali - MAI nella zona dei comandi
+                if (this.y < -this.radius) {
+                    this.y = canvas.height - CONTROL_ZONE_HEIGHT - this.radius;
+                }
+                if (this.y > canvas.height - CONTROL_ZONE_HEIGHT - this.radius) {
+                    this.y = -this.radius;
+                }
             }
             
             draw() {
@@ -642,11 +647,17 @@
                 this.y += this.velY;
                 this.life--;
                 
-                // Gestione bordi (wrap-around)
+                // Gestione bordi (wrap-around) ma non nella zona dei comandi
                 if (this.x < -this.radius) this.x = canvas.width + this.radius;
                 if (this.x > canvas.width + this.radius) this.x = -this.radius;
-                if (this.y < -this.radius) this.y = canvas.height + this.radius;
-                if (this.y > canvas.height + this.radius) this.y = -this.radius;
+                
+                // Rimuovi se entra nella zona dei comandi
+                if (this.y > canvas.height - CONTROL_ZONE_HEIGHT) {
+                    this.life = 0;
+                }
+                
+                // Gestione bordo superiore
+                if (this.y < -this.radius) this.y = canvas.height - CONTROL_ZONE_HEIGHT - this.radius;
             }
             
             draw() {
@@ -662,8 +673,10 @@
             constructor(isLarge) {
                 this.isLarge = isLarge || Math.random() > 0.5;
                 this.radius = this.isLarge ? 20 : 10;
+                // Genera UFO MAI nella zona dei comandi
+                const safeY = Math.random() * (canvas.height - CONTROL_ZONE_HEIGHT - this.radius * 2) + this.radius;
                 this.x = Math.random() > 0.5 ? -this.radius : canvas.width + this.radius;
-                this.y = Math.random() * canvas.height;
+                this.y = safeY;
                 this.velX = (this.x > canvas.width / 2 ? -1 : 1) * (this.isLarge ? 1 : 2);
                 this.velY = (Math.random() - 0.5) * 0.5;
                 this.shotTimer = 0;
@@ -678,6 +691,11 @@
                 
                 // Rimuovi se esce dallo schermo
                 if (this.x < -this.radius * 2 || this.x > canvas.width + this.radius * 2) {
+                    return false;
+                }
+                
+                // Rimuovi se entra nella zona dei comandi
+                if (this.y > canvas.height - CONTROL_ZONE_HEIGHT - this.radius) {
                     return false;
                 }
                 
@@ -771,12 +789,12 @@
         
         // Aggiorna il display del punteggio
         function updateScoreDisplay() {
-            scoreDisplay.textContent = `PUNTEGGIO: ${score}`;
+            scoreDisplay.textContent = `SCORE: ${score}`;
         }
         
         // Aggiorna il display delle vite
         function updateLivesDisplay() {
-            livesDisplay.textContent = `NAVI: ${lives}`;
+            livesDisplay.textContent = `SHIPS: ${lives}`;
         }
         
         // Controlla le collisioni
@@ -898,7 +916,7 @@
                 
                 // Resetta la posizione della navicella
                 ship.x = canvas.width / 2;
-                ship.y = canvas.height / 2;
+                ship.y = canvas.height / 2 - CONTROL_ZONE_HEIGHT / 2;
                 ship.velX = 0;
                 ship.velY = 0;
                 
@@ -915,9 +933,9 @@
             
             gameState.innerHTML = `
                 <h2>GAME OVER</h2>
-                <p>Punteggio finale: ${score}</p>
-                <p>Livello raggiunto: ${level}</p>
-                <button id="restartBtn">RIGIOCA</button>
+                <p>Final score: ${score}</p>
+                <p>Level reached: ${level}</p>
+                <button id="restartBtn">PLAY AGAIN</button>
             `;
             gameState.style.display = 'flex';
             
@@ -977,6 +995,11 @@
                 particles[i].y += particles[i].velY;
                 particles[i].life--;
                 
+                // Rimuovi particelle se entrano nella zona dei comandi
+                if (particles[i].y > canvas.height - CONTROL_ZONE_HEIGHT) {
+                    particles[i].life = 0;
+                }
+                
                 // Disegna particelle
                 ctx.fillStyle = particles[i].color;
                 ctx.beginPath();
@@ -1013,7 +1036,7 @@
             const joystickArea = document.getElementById('joystickActiveArea');
             const joystickHandle = document.getElementById('joystickHandle');
             
-            // Tasto SPARA (cerchio destro)
+            // Tasto SPARA (cerchio sinistro - ora invertito)
             fireBtn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 if (gameActive && ship) {
@@ -1037,7 +1060,7 @@
                 }, 100);
             });
             
-            // Tasto IPERSPAZIO (cerchio sinistro)
+            // Tasto IPERSPAZIO (cerchio destro - ora invertito)
             hyperspaceBtn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 if (gameActive && ship) {
@@ -1055,12 +1078,6 @@
             
             // Joystick a semicerchio
             const joystickContainer = document.getElementById('joystickContainer');
-            const joystickRect = joystickContainer.getBoundingClientRect();
-            
-            // Calcola il centro e il raggio del joystick
-            const joystickCenterX = joystickRect.left + joystickRect.width / 2;
-            const joystickCenterY = joystickRect.top + joystickRect.height;
-            const joystickRadius = joystickRect.width / 2;
             
             // Gestione del joystick
             function handleJoystickStart(e) {
@@ -1080,66 +1097,92 @@
                 joystickActive = false;
                 joystickRotation = 0;
                 joystickThrust = false;
+                joystickX = 0;
+                joystickY = 0;
                 
                 // Riporta il joystick alla posizione centrale
-                joystickHandle.style.left = '55px';
-                joystickHandle.style.bottom = '15px';
+                joystickHandle.style.transform = 'translate(0, 0)';
             }
             
             function updateJoystick(touch) {
-                const touchX = touch.clientX;
-                const touchY = touch.clientY;
+                const rect = joystickContainer.getBoundingClientRect();
                 
-                // Calcola la distanza dal centro del joystick
-                const dx = touchX - joystickCenterX;
-                const dy = touchY - joystickCenterY;
+                // Calcola le coordinate relative al joystick
+                const touchX = touch.clientX - rect.left;
+                const touchY = touch.clientY - rect.top;
                 
-                // Calcola la distanza e l'angolo
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                let angle = Math.atan2(dy, dx);
+                // Coordinate relative al centro del joystick
+                const centerX = rect.width / 2;
+                const centerY = rect.height;
+                
+                const relX = touchX - centerX;
+                const relY = touchY - centerY;
+                
+                // Calcola la distanza dal centro
+                const distance = Math.sqrt(relX * relX + relY * relY);
+                const maxDistance = rect.width / 2;
                 
                 // Limita la distanza al raggio del joystick
-                const limitedDistance = Math.min(distance, joystickRadius);
+                const limitedDistance = Math.min(distance, maxDistance);
                 
-                // Calcola la posizione limitata
-                const limitedX = Math.cos(angle) * limitedDistance;
-                const limitedY = Math.sin(angle) * limitedDistance;
-                
-                // Aggiorna la posizione visiva del joystick
-                const joystickX = (joystickRect.width / 2) + limitedX - 25;
-                const joystickY = joystickRect.height + limitedY - 25;
-                
-                joystickHandle.style.left = `${joystickX}px`;
-                joystickHandle.style.bottom = `${joystickY}px`;
-                
-                // Determina l'azione in base all'angolo
-                // Angolo di 0° a destra, 90° in basso, 180° a sinistra, -90° in alto
+                // Calcola l'angolo
+                let angle = Math.atan2(relY, relX);
                 
                 // Normalizza l'angolo tra 0 e 360 gradi
                 if (angle < 0) angle += 2 * Math.PI;
                 
-                // Se il tocco è nella metà superiore del semicerchio (tra 0 e 180 gradi)
-                if (angle > Math.PI) {
-                    // Metà sinistra: rotazione a sinistra
-                    if (angle > Math.PI && angle < (3 * Math.PI) / 2) {
-                        joystickRotation = -ship.rotationSpeed;
-                        joystickThrust = false;
-                    }
-                    // Metà destra: rotazione a destra
-                    else {
-                        joystickRotation = ship.rotationSpeed;
-                        joystickThrust = false;
-                    }
-                } else {
+                // Calcola le coordinate limitate
+                const limitedX = Math.cos(angle) * limitedDistance;
+                const limitedY = Math.sin(angle) * limitedDistance;
+                
+                // Aggiorna la posizione visiva del joystick
+                joystickHandle.style.transform = `translate(${limitedX}px, ${limitedY}px)`;
+                
+                // Salva le coordinate per l'intensità
+                joystickX = limitedX / maxDistance;
+                joystickY = limitedY / maxDistance;
+                
+                // Determina l'azione in base all'angolo
+                // Semicerchio: 0° a destra, 90° in basso, 180° a sinistra
+                // Vogliamo che la parte superiore (da circa 240° a 300°) sia per l'accelerazione
+                
+                // Converti in gradi per facilità
+                const degrees = angle * (180 / Math.PI);
+                
+                // Sistema di controllo migliorato:
+                // - Se il tocco è nella parte superiore del semicerchio (da 210° a 330°): accelerazione
+                // - Se il tocco è nella parte sinistra (da 150° a 210°): rotazione a sinistra
+                // - Se il tocco è nella parte destra (da 330° a 30°): rotazione a destra
+                
+                if (degrees >= 210 && degrees <= 330) {
                     // Parte superiore: accelerazione
                     joystickRotation = 0;
                     joystickThrust = true;
+                    
+                    // Intensità in base a quanto in alto si tocca
+                    const thrustIntensity = 1 - (degrees - 210) / 120;
+                    ship.thrustPower = 0.15 * thrustIntensity;
+                } 
+                else if (degrees >= 150 && degrees < 210) {
+                    // Parte sinistra: rotazione a sinistra
+                    joystickRotation = -ship.rotationSpeed * (1 - (degrees - 150) / 60);
+                    joystickThrust = false;
                 }
-                
-                // Regola l'intensità in base alla distanza dal centro
-                const intensity = limitedDistance / joystickRadius;
-                if (joystickThrust) {
-                    ship.thrustPower = 0.1 * intensity;
+                else if (degrees >= 330 || degrees <= 30) {
+                    // Parte destra: rotazione a destra
+                    let intensity;
+                    if (degrees >= 330) {
+                        intensity = (degrees - 330) / 60;
+                    } else {
+                        intensity = (degrees + 30) / 60;
+                    }
+                    joystickRotation = ship.rotationSpeed * intensity;
+                    joystickThrust = false;
+                }
+                else {
+                    // Zone intermedie: nessuna azione
+                    joystickRotation = 0;
+                    joystickThrust = false;
                 }
             }
             
@@ -1165,7 +1208,7 @@
             // Mostra la schermata iniziale
             gameState.style.display = 'flex';
             
-            // Avvia il gioco quando si clicca su "INIZIA GIOCO"
+            // Avvia il gioco quando si clicca su "START GAME"
             startBtn.addEventListener('click', initGame);
             startBtn.addEventListener('touchstart', initGame);
             
