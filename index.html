@@ -17,9 +17,54 @@
             touch-action: none;
         }
         
+        :root {
+            /* Default dark theme colors */
+            --bg-primary: #000;
+            --bg-secondary: #111;
+            --text-primary: #fff;
+            --text-secondary: #ccc;
+            --accent-primary: #fff;
+            --accent-secondary: #4da6ff;
+            --ui-bg: rgba(0, 0, 0, 0.95);
+            --ui-border: #333;
+            --button-bg: #fff;
+            --button-text: #000;
+            --particle-color: #fff;
+            --explosion-color: #fff;
+            --thruster-color: #fff;
+            --asteroid-color: #fff;
+            --ufo-color: #fff;
+            --bullet-color: #fff;
+            --ship-color: #fff;
+            --ship-thruster: #fff;
+        }
+        
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-primary: #fff;
+                --bg-secondary: #f0f0f0;
+                --text-primary: #000;
+                --text-secondary: #333;
+                --accent-primary: #000;
+                --accent-secondary: #0066cc;
+                --ui-bg: rgba(255, 255, 255, 0.95);
+                --ui-border: #ccc;
+                --button-bg: #000;
+                --button-text: #fff;
+                --particle-color: #000;
+                --explosion-color: #000;
+                --thruster-color: #000;
+                --asteroid-color: #000;
+                --ufo-color: #000;
+                --bullet-color: #000;
+                --ship-color: #000;
+                --ship-thruster: #000;
+            }
+        }
+        
         body {
-            background-color: #000;
-            color: #fff;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
             font-family: 'Courier New', monospace;
             overflow: hidden;
             height: 100vh;
@@ -31,6 +76,7 @@
             position: fixed;
             top: 0;
             left: 0;
+            transition: background-color 0.3s, color 0.3s;
         }
         
         #gameContainer {
@@ -45,11 +91,12 @@
         }
         
         #gameCanvas {
-            background-color: #000;
+            background-color: var(--bg-primary);
             width: 100%;
             height: 100%;
             display: block;
             touch-action: none;
+            transition: background-color 0.3s;
         }
         
         #gameState {
@@ -58,7 +105,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.95);
+            background-color: var(--ui-bg);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -66,46 +113,89 @@
             text-align: center;
             z-index: 10;
             padding: 20px;
+            backdrop-filter: blur(5px);
+            border: 1px solid var(--ui-border);
+            transition: background-color 0.3s, border-color 0.3s;
         }
         
         #gameState h2 {
             margin-bottom: 20px;
-            color: #fff;
+            color: var(--text-primary);
             font-size: 36px;
             text-transform: uppercase;
             letter-spacing: 3px;
+            transition: color 0.3s;
         }
         
         #gameState p {
             margin: 10px 0;
             font-size: 20px;
-            color: #fff;
+            color: var(--text-secondary);
             max-width: 90%;
             line-height: 1.5;
+            transition: color 0.3s;
         }
         
         .game-btn {
-            background-color: #fff;
-            color: #000;
-            border: none;
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: 2px solid var(--accent-primary);
             font-size: 24px;
             padding: 15px 40px;
             margin-top: 30px;
             font-weight: bold;
             font-family: 'Courier New', monospace;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             text-transform: uppercase;
             letter-spacing: 2px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .game-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
         }
         
         .game-btn:active {
-            background-color: #ccc;
+            background-color: var(--button-text);
+            color: var(--button-bg);
             transform: scale(0.98);
         }
         
         .game-btn:focus {
             outline: none;
+            box-shadow: 0 0 0 3px var(--accent-secondary);
+        }
+        
+        .theme-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            padding: 5px 10px;
+            border: 1px solid var(--ui-border);
+            border-radius: 5px;
+            background-color: var(--bg-secondary);
+            z-index: 5;
+            transition: all 0.3s;
+        }
+        
+        .controls-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            max-width: 200px;
+            background-color: var(--bg-secondary);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid var(--ui-border);
+            z-index: 5;
+            transition: all 0.3s;
         }
         
         @media (max-width: 600px) {
@@ -115,6 +205,25 @@
             
             #gameState p {
                 font-size: 18px;
+            }
+            
+            .theme-indicator {
+                top: 10px;
+                right: 10px;
+                font-size: 12px;
+            }
+            
+            .controls-hint {
+                bottom: 10px;
+                left: 10px;
+                font-size: 12px;
+                max-width: 150px;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .controls-hint {
+                display: none;
             }
         }
     </style>
@@ -130,6 +239,18 @@
             <p>Each asteroid splits into smaller pieces</p>
             <button id="startBtn" class="game-btn">START GAME</button>
         </div>
+        
+        <div class="theme-indicator" id="themeIndicator">
+            Theme: <span id="themeValue">Dark</span>
+        </div>
+        
+        <div class="controls-hint" id="controlsHint">
+            <strong>Controls:</strong><br>
+            • Swipe up: Thrust<br>
+            • Swipe left/right: Rotate<br>
+            • Tap: Shoot<br>
+            • Hold: Hyperspace
+        </div>
     </div>
 
     <script>
@@ -138,11 +259,38 @@
         const ctx = canvas.getContext('2d');
         const gameState = document.getElementById('gameState');
         const startBtn = document.getElementById('startBtn');
+        const themeIndicator = document.getElementById('themeIndicator');
+        const themeValue = document.getElementById('themeValue');
+        const controlsHint = document.getElementById('controlsHint');
         
         // Imposta le dimensioni del canvas a schermo intero
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+        }
+        
+        // Rileva tema sistema
+        function detectSystemTheme() {
+            const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            return isDarkMode ? 'dark' : 'light';
+        }
+        
+        // Aggiorna indicatore tema
+        function updateThemeIndicator() {
+            const theme = detectSystemTheme();
+            themeValue.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+            
+            // Aggiorna colori CSS personalizzati per il canvas
+            updateCanvasColors();
+            
+            // Aggiorna stili elementi UI
+            themeIndicator.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary');
+            themeIndicator.style.color = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary');
+            themeIndicator.style.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--ui-border');
+            
+            controlsHint.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary');
+            controlsHint.style.color = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary');
+            controlsHint.style.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--ui-border');
         }
         
         // Variabili di gioco
@@ -175,6 +323,41 @@
         let hyperspaceHoldTimer = null;
         let isHoldingForHyperspace = false;
         const HYPERSPACE_HOLD_TIME = 1000; // 1 secondo per attivare l'iperspazio
+        
+        // Colori dinamici basati sul tema
+        let gameColors = {
+            ship: '#fff',
+            asteroid: '#fff',
+            bullet: '#fff',
+            ufo: '#fff',
+            particle: '#fff',
+            explosion: '#fff',
+            thruster: '#fff',
+            text: '#fff',
+            background: '#000'
+        };
+        
+        // Aggiorna i colori del canvas in base al tema
+        function updateCanvasColors() {
+            const rootStyles = getComputedStyle(document.documentElement);
+            
+            gameColors = {
+                ship: rootStyles.getPropertyValue('--ship-color').trim(),
+                asteroid: rootStyles.getPropertyValue('--asteroid-color').trim(),
+                bullet: rootStyles.getPropertyValue('--bullet-color').trim(),
+                ufo: rootStyles.getPropertyValue('--ufo-color').trim(),
+                particle: rootStyles.getPropertyValue('--particle-color').trim(),
+                explosion: rootStyles.getPropertyValue('--explosion-color').trim(),
+                thruster: rootStyles.getPropertyValue('--thruster-color').trim(),
+                text: rootStyles.getPropertyValue('--text-primary').trim(),
+                background: rootStyles.getPropertyValue('--bg-primary').trim(),
+                trail: rootStyles.getPropertyValue('--bg-primary').trim()
+            };
+            
+            // Per l'effetto scia, usiamo il colore di sfondo con opacità
+            const isDark = detectSystemTheme() === 'dark';
+            gameColors.trail = isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)';
+        }
         
         // Classe della navicella
         class Ship {
@@ -243,7 +426,7 @@
                             velX: Math.cos(this.angle + Math.PI + (Math.random() * 0.4 - 0.2)) * (3 + Math.random() * 3),
                             velY: Math.sin(this.angle + Math.PI + (Math.random() * 0.4 - 0.2)) * (3 + Math.random() * 3),
                             life: 20 + Math.random() * 20,
-                            color: '#fff'
+                            color: gameColors.thruster
                         });
                     }
                 }
@@ -269,7 +452,7 @@
                 ctx.save();
                 ctx.translate(this.x, this.y);
                 ctx.rotate(this.angle);
-                ctx.strokeStyle = '#fff';
+                ctx.strokeStyle = gameColors.ship;
                 ctx.lineWidth = 2;
                 
                 // Disegna la navicella (triangolo)
@@ -286,7 +469,7 @@
                     ctx.moveTo(-this.radius, -this.radius * 0.4);
                     ctx.lineTo(-this.radius * 1.5, 0);
                     ctx.lineTo(-this.radius, this.radius * 0.4);
-                    ctx.strokeStyle = '#fff';
+                    ctx.strokeStyle = gameColors.thruster;
                     ctx.stroke();
                 }
                 
@@ -337,7 +520,7 @@
                         velX: (Math.random() - 0.5) * 8,
                         velY: (Math.random() - 0.5) * 8,
                         life: 30 + Math.random() * 30,
-                        color: '#fff'
+                        color: gameColors.explosion
                     });
                 }
             }
@@ -379,7 +562,7 @@
                 ctx.save();
                 ctx.translate(this.x, this.y);
                 ctx.rotate(this.angle);
-                ctx.strokeStyle = '#fff';
+                ctx.strokeStyle = gameColors.asteroid;
                 ctx.lineWidth = 2;
                 
                 // Disegna l'asteroide poligonale
@@ -429,7 +612,7 @@
                         velX: (Math.random() - 0.5) * 6,
                         velY: (Math.random() - 0.5) * 6,
                         life: 20 + Math.random() * 20,
-                        color: '#fff'
+                        color: gameColors.explosion
                     });
                 }
                 
@@ -461,7 +644,7 @@
             }
             
             draw() {
-                ctx.fillStyle = '#fff';
+                ctx.fillStyle = gameColors.bullet;
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                 ctx.fill();
@@ -505,7 +688,7 @@
             draw() {
                 ctx.save();
                 ctx.translate(this.x, this.y);
-                ctx.strokeStyle = '#fff';
+                ctx.strokeStyle = gameColors.ufo;
                 ctx.lineWidth = 2;
                 
                 // Disegna UFO (forma a piattino)
@@ -548,7 +731,7 @@
                         velX: (Math.random() - 0.5) * 8,
                         velY: (Math.random() - 0.5) * 8,
                         life: 30 + Math.random() * 30,
-                        color: '#fff'
+                        color: gameColors.explosion
                     });
                 }
             }
@@ -576,6 +759,9 @@
                 clearTimeout(hyperspaceHoldTimer);
                 hyperspaceHoldTimer = null;
             }
+            
+            // Aggiorna colori in base al tema corrente
+            updateCanvasColors();
             
             // Crea asteroidi iniziali
             for (let i = 0; i < 4 + level; i++) {
@@ -755,7 +941,7 @@
         // Disegna l'interfaccia utente
         function drawUI() {
             // Disegna il punteggio
-            ctx.fillStyle = '#fff';
+            ctx.fillStyle = gameColors.text;
             ctx.font = '20px Courier New';
             ctx.textAlign = 'left';
             ctx.fillText(`SCORE: ${score}`, 20, 30);
@@ -765,6 +951,12 @@
             
             // Disegna il livello
             ctx.fillText(`LEVEL: ${level}`, 20, 90);
+            
+            // Disegna il tema corrente in piccolo in basso a destra
+            ctx.font = '12px Courier New';
+            ctx.textAlign = 'right';
+            const themeName = detectSystemTheme().toUpperCase();
+            ctx.fillText(`THEME: ${themeName}`, canvas.width - 20, canvas.height - 20);
         }
         
         // Gestione input touch - Nuovo sistema di comandi
@@ -859,7 +1051,7 @@
             resizeCanvas();
             
             // Pulisci il canvas con una leggera trasparenza per l'effetto scia
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.fillStyle = gameColors.trail;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             // Aggiorna e disegna tutti gli oggetti
@@ -935,6 +1127,7 @@
         // Inizializza quando la pagina è caricata
         window.addEventListener('load', () => {
             resizeCanvas();
+            updateThemeIndicator();
             
             // Mostra la schermata iniziale
             gameState.style.display = 'flex';
@@ -953,6 +1146,10 @@
             
             // Ridimensiona il canvas quando la finestra cambia dimensione
             window.addEventListener('resize', resizeCanvas);
+            
+            // Ascolta i cambiamenti del tema del sistema
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateThemeIndicator);
+            window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', updateThemeIndicator);
             
             // Previeni il comportamento di scorrimento della pagina sui dispositivi mobili
             document.addEventListener('touchmove', (e) => {
