@@ -164,135 +164,122 @@
         let isThrusting = false;
         let isRotatingLeft = false;
         let isRotatingRight = false;
-        let touchId = null;
         
         // Variabili per i tasti (oggetti di gioco)
         let buttons = [];
+        const CONTROL_ZONE_HEIGHT = 150; // Zona per i controlli
         
         // Classe dei tasti (oggetti di gioco)
         class GameButton {
-            constructor(x, y, width, height, type) {
+            constructor(x, y, radius, type) {
                 this.x = x;
                 this.y = y;
-                this.width = width;
-                this.height = height;
+                this.radius = radius;
                 this.type = type; // 'left', 'right', 'up', 'fire', 'hyperspace'
                 this.active = false;
-                this.color = 'rgba(255, 255, 255, 0.3)';
-                this.activeColor = 'rgba(255, 255, 255, 0.8)';
+                this.color = 'rgba(255, 255, 255, 0.1)';
+                this.activeColor = 'rgba(255, 255, 255, 0.3)';
                 this.borderColor = '#fff';
-                this.radius = 15;
+                this.textColor = '#fff';
             }
             
             draw() {
                 ctx.save();
                 
-                // Disegna lo sfondo del pulsante
+                // Disegna il cerchio del pulsante
                 ctx.fillStyle = this.active ? this.activeColor : this.color;
                 ctx.strokeStyle = this.borderColor;
                 ctx.lineWidth = 2;
                 
-                // Rettangolo arrotondato
                 ctx.beginPath();
-                ctx.roundRect(this.x, this.y, this.width, this.height, this.radius);
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.stroke();
                 
                 // Disegna il simbolo del pulsante
-                ctx.fillStyle = '#000';
-                ctx.font = 'bold 30px Arial';
+                ctx.fillStyle = this.textColor;
+                ctx.font = 'bold ' + (this.radius * 0.8) + 'px Arial';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 
                 let symbol = '';
                 switch(this.type) {
-                    case 'left': symbol = '◀'; break;
-                    case 'right': symbol = '▶'; break;
-                    case 'up': symbol = '▲'; break;
-                    case 'fire': symbol = '●'; break;
+                    case 'left': symbol = '←'; break;
+                    case 'right': symbol = '→'; break;
+                    case 'up': symbol = '↑'; break;
+                    case 'fire': symbol = 'S'; break;
                     case 'hyperspace': symbol = 'H'; break;
                 }
                 
-                ctx.fillText(symbol, this.x + this.width/2, this.y + this.height/2);
+                ctx.fillText(symbol, this.x, this.y);
                 
                 ctx.restore();
             }
             
             containsPoint(x, y) {
-                return x >= this.x && x <= this.x + this.width &&
-                       y >= this.y && y <= this.y + this.height;
+                const distance = Math.sqrt((x - this.x) ** 2 + (y - this.y) ** 2);
+                return distance <= this.radius;
             }
             
             // Controlla collisione con altri oggetti di gioco
             checkCollision(object) {
-                // Calcola il centro dell'oggetto
-                const objCenterX = object.x || object.x;
-                const objCenterY = object.y || object.y;
-                const objRadius = object.radius || 0;
-                
-                // Calcola il punto più vicino sul pulsante all'oggetto
-                const closestX = Math.max(this.x, Math.min(objCenterX, this.x + this.width));
-                const closestY = Math.max(this.y, Math.min(objCenterY, this.y + this.height));
-                
-                // Calcola la distanza
-                const distanceX = objCenterX - closestX;
-                const distanceY = objCenterY - closestY;
-                const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
-                
-                return distance <= objRadius;
+                const dx = object.x - this.x;
+                const dy = object.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                return distance <= (object.radius + this.radius);
             }
         }
         
         // Inizializza i pulsanti
         function initButtons() {
             buttons = [];
-            const buttonSize = 70;
-            const margin = 20;
-            const bottom = canvas.height - buttonSize - margin;
+            const buttonRadius = 35;
+            const margin = 30;
+            const bottom = canvas.height - margin - buttonRadius;
             
-            // Pulsante sinistra
+            // Tasto S (SPARA) a sinistra
             buttons.push(new GameButton(
-                margin,
+                margin + buttonRadius,
                 bottom,
-                buttonSize,
-                buttonSize,
-                'left'
-            ));
-            
-            // Pulsante su (accelerazione)
-            buttons.push(new GameButton(
-                canvas.width/2 - buttonSize/2,
-                bottom - buttonSize - margin/2,
-                buttonSize,
-                buttonSize,
-                'up'
-            ));
-            
-            // Pulsante destra
-            buttons.push(new GameButton(
-                canvas.width - buttonSize - margin,
-                bottom,
-                buttonSize,
-                buttonSize,
-                'right'
-            ));
-            
-            // Pulsante fuoco (in alto a sinistra)
-            buttons.push(new GameButton(
-                margin,
-                margin,
-                buttonSize,
-                buttonSize,
+                buttonRadius,
                 'fire'
             ));
             
-            // Pulsante iperspazio (in alto a destra)
+            // Tasto H (IPERSPAZIO) a destra
             buttons.push(new GameButton(
-                canvas.width - buttonSize - margin,
-                margin,
-                buttonSize,
-                buttonSize,
+                canvas.width - margin - buttonRadius,
+                bottom,
+                buttonRadius,
                 'hyperspace'
+            ));
+            
+            // Frecce al centro (triangolo)
+            const centerX = canvas.width / 2;
+            const centerY = bottom;
+            const arrowRadius = buttonRadius * 0.7;
+            
+            // Freccia su (centro in alto)
+            buttons.push(new GameButton(
+                centerX,
+                centerY - buttonRadius,
+                arrowRadius,
+                'up'
+            ));
+            
+            // Freccia sinistra (centro sinistra)
+            buttons.push(new GameButton(
+                centerX - buttonRadius,
+                centerY,
+                arrowRadius,
+                'left'
+            ));
+            
+            // Freccia destra (centro destra)
+            buttons.push(new GameButton(
+                centerX + buttonRadius,
+                centerY,
+                arrowRadius,
+                'right'
             ));
         }
         
@@ -304,7 +291,7 @@
             
             reset() {
                 this.x = canvas.width / 2;
-                this.y = canvas.height / 2;
+                this.y = (canvas.height - CONTROL_ZONE_HEIGHT) / 2;
                 this.radius = 15;
                 this.angle = -Math.PI / 2; // Punta verso l'alto
                 this.rotation = 0;
@@ -358,11 +345,11 @@
                 this.x += this.velX;
                 this.y += this.velY;
                 
-                // Gestione bordi (wrap-around) - tutto lo schermo
+                // Gestione bordi (wrap-around) - evitando la zona controlli
                 if (this.x < -this.radius) this.x = canvas.width + this.radius;
                 if (this.x > canvas.width + this.radius) this.x = -this.radius;
-                if (this.y < -this.radius) this.y = canvas.height + this.radius;
-                if (this.y > canvas.height + this.radius) this.y = -this.radius;
+                if (this.y < -this.radius) this.y = canvas.height - CONTROL_ZONE_HEIGHT - this.radius;
+                if (this.y > canvas.height - CONTROL_ZONE_HEIGHT - this.radius) this.y = -this.radius;
             }
             
             draw() {
@@ -400,7 +387,6 @@
                 if (Math.random() < 0.01) {
                     this.explode();
                     lives--;
-                    updateLivesDisplay();
                     if (lives <= 0) {
                         endGame();
                     } else {
@@ -409,9 +395,9 @@
                         this.invincibleTimer = 120;
                     }
                 } else {
-                    // Teletrasporto casuale
+                    // Teletrasporto casuale (evitando la zona controlli)
                     this.x = Math.random() * canvas.width;
-                    this.y = Math.random() * canvas.height;
+                    this.y = Math.random() * (canvas.height - CONTROL_ZONE_HEIGHT - this.radius * 2) + this.radius;
                     this.velX = 0;
                     this.velY = 0;
                     this.invincible = true;
@@ -437,8 +423,10 @@
         // Classe degli asteroidi
         class Asteroid {
             constructor(x, y, size, velX, velY) {
+                // Genera asteroidi evitando la zona controlli
+                const safeY = Math.random() * (canvas.height - CONTROL_ZONE_HEIGHT - 60) + 30;
                 this.x = x || Math.random() * canvas.width;
-                this.y = y || Math.random() * canvas.height;
+                this.y = y || safeY;
                 this.size = size || 3; // 3 = large, 2 = medium, 1 = small
                 this.radius = this.size * 10;
                 this.velX = velX || (Math.random() - 0.5) * 2;
@@ -459,11 +447,11 @@
                 this.y += this.velY;
                 this.angle += this.rotation;
                 
-                // Gestione bordi (wrap-around) - tutto lo schermo
+                // Gestione bordi (wrap-around) - evitando la zona controlli
                 if (this.x < -this.radius) this.x = canvas.width + this.radius;
                 if (this.x > canvas.width + this.radius) this.x = -this.radius;
-                if (this.y < -this.radius) this.y = canvas.height + this.radius;
-                if (this.y > canvas.height + this.radius) this.y = -this.radius;
+                if (this.y < -this.radius) this.y = canvas.height - CONTROL_ZONE_HEIGHT - this.radius;
+                if (this.y > canvas.height - CONTROL_ZONE_HEIGHT - this.radius) this.y = -this.radius;
             }
             
             draw() {
@@ -544,11 +532,11 @@
                 this.y += this.velY;
                 this.life--;
                 
-                // Gestione bordi (wrap-around) - tutto lo schermo
+                // Gestione bordi (wrap-around) - evitando la zona controlli
                 if (this.x < -this.radius) this.x = canvas.width + this.radius;
                 if (this.x > canvas.width + this.radius) this.x = -this.radius;
-                if (this.y < -this.radius) this.y = canvas.height + this.radius;
-                if (this.y > canvas.height + this.radius) this.y = -this.radius;
+                if (this.y < -this.radius) this.y = canvas.height - CONTROL_ZONE_HEIGHT - this.radius;
+                if (this.y > canvas.height - CONTROL_ZONE_HEIGHT - this.radius) this.y = -this.radius;
             }
             
             draw() {
@@ -564,8 +552,10 @@
             constructor(isLarge) {
                 this.isLarge = isLarge || Math.random() > 0.5;
                 this.radius = this.isLarge ? 20 : 10;
+                // Genera UFO evitando la zona controlli
+                const safeY = Math.random() * (canvas.height - CONTROL_ZONE_HEIGHT - this.radius * 2) + this.radius;
                 this.x = Math.random() > 0.5 ? -this.radius : canvas.width + this.radius;
-                this.y = Math.random() * canvas.height;
+                this.y = safeY;
                 this.velX = (this.x > canvas.width / 2 ? -1 : 1) * (this.isLarge ? 1 : 2);
                 this.velY = (Math.random() - 0.5) * 0.5;
                 this.shotTimer = 0;
@@ -791,7 +781,6 @@
                 for (let j = 0; j < buttons.length; j++) {
                     if (buttons[j].checkCollision(asteroids[i])) {
                         // L'asteroide collide con il pulsante
-                        // Divide l'asteroide
                         const newAsteroids = asteroids[i].split();
                         asteroids.splice(i, 1);
                         asteroids.push(...newAsteroids);
@@ -804,7 +793,6 @@
             for (let i = ufos.length - 1; i >= 0; i--) {
                 for (let j = 0; j < buttons.length; j++) {
                     if (buttons[j].checkCollision(ufos[i])) {
-                        // L'UFO collide con il pulsante
                         ufos[i].explode();
                         ufos.splice(i, 1);
                         break;
@@ -816,7 +804,6 @@
             if (ship && !ship.invincible) {
                 for (let j = 0; j < buttons.length; j++) {
                     if (buttons[j].checkCollision(ship)) {
-                        // La navicella collide con il pulsante
                         ship.explode();
                         lives--;
                         
@@ -845,7 +832,7 @@
                 
                 // Resetta la posizione della navicella
                 ship.x = canvas.width / 2;
-                ship.y = canvas.height / 2;
+                ship.y = (canvas.height - CONTROL_ZONE_HEIGHT) / 2;
                 ship.velX = 0;
                 ship.velY = 0;
                 
@@ -895,6 +882,14 @@
             buttons.forEach(button => {
                 button.draw();
             });
+            
+            // Disegna una linea di separazione per la zona controlli
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height - CONTROL_ZONE_HEIGHT);
+            ctx.lineTo(canvas.width, canvas.height - CONTROL_ZONE_HEIGHT);
+            ctx.stroke();
         }
         
         // Gestione input touch
