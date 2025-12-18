@@ -203,22 +203,6 @@
             transform: scale(0.98);
         }
         
-        #instructions {
-            position: absolute;
-            bottom: 150px;
-            left: 0;
-            right: 0;
-            padding: 10px 15px;
-            font-size: 14px;
-            line-height: 1.4;
-            text-align: center;
-            color: #aaa;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 1;
-            border-top: 1px solid #fff;
-            border-bottom: 1px solid #fff;
-        }
-        
         /* Rimuovi i bordi arancioni di focus su mobile */
         .control-circle:focus, #startBtn:focus {
             outline: none;
@@ -253,11 +237,6 @@
                 height: 40px;
                 bottom: 10px;
                 left: 50px;
-            }
-            
-            #instructions {
-                bottom: 130px;
-                font-size: 12px;
             }
             
             #uiOverlay {
@@ -298,11 +277,6 @@
                 left: 47px;
             }
             
-            #instructions {
-                font-size: 12px;
-                padding: 8px 10px;
-            }
-            
             #gameState h2 {
                 font-size: 28px;
             }
@@ -340,11 +314,6 @@
                 bottom: 5px;
                 left: 45px;
             }
-            
-            #instructions {
-                bottom: 110px;
-                font-size: 11px;
-            }
         }
     </style>
 </head>
@@ -354,9 +323,6 @@
         <div id="uiOverlay">
             <div id="scoreDisplay">PUNTEGGIO: 0</div>
             <div id="livesDisplay">NAVI: 3</div>
-        </div>
-        <div id="instructions">
-            CONTROLLI: Usa il joystick a semicerchio per muoverti, tocca S per sparare, H per l'iperspazio. Ogni asteroide grande vale 20 punti, medio 50 punti, piccolo 100 punti. Gli UFO valgono 200 o 1000 punti.
         </div>
         <div id="controls">
             <div class="control-circle" id="hyperspaceBtn">H</div>
@@ -798,11 +764,6 @@
             updateLivesDisplay();
             gameState.style.display = 'none';
             gameActive = true;
-            
-            // Nascondi temporaneamente le istruzioni dopo l'inizio
-            setTimeout(() => {
-                document.getElementById('instructions').style.opacity = '0.5';
-            }, 3000);
             
             // Avvia il game loop
             requestAnimationFrame(gameLoop);
