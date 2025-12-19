@@ -118,8 +118,8 @@
             z-index: 10;
             padding: 20px;
             backdrop-filter: blur(5px);
-            border: 1px solid var(--ui-border);
-            transition: background-color 0.3s, border-color 0.3s;
+            /* Border rimosso come richiesto */
+            transition: background-color 0.3s;
         }
         
         #gameState h2 {
@@ -167,6 +167,37 @@
             outline: none;
         }
         
+        /* Animazione a respiro per il titolo Asteroids */
+        @keyframes breathing {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.9;
+            }
+        }
+        
+        .breathing-title {
+            animation: breathing 3s ease-in-out infinite;
+            cursor: default;
+        }
+        
+        .clickable-title {
+            cursor: pointer !important;
+            animation: breathing 3s ease-in-out infinite;
+        }
+        
+        .clickable-title:active {
+            transform: scale(0.95);
+        }
+        
+        #gameState.game-over h2:first-child {
+            cursor: pointer !important;
+            animation: breathing 3s ease-in-out infinite;
+        }
+        
         @media (max-width: 600px) {
             #gameState h2 {
                 font-size: 28px;
@@ -183,7 +214,7 @@
         <canvas id="gameCanvas"></canvas>
         
         <div id="gameState">
-            <h2>Asteroids</h2>
+            <h2 id="mainTitle" class="breathing-title">Asteroids</h2>
             <p>Destroy all asteroids!</p>
             <p>Avoid collisions with asteroids and UFOs</p>
             <p>Each asteroid splits into smaller pieces</p>
@@ -197,6 +228,7 @@
         const ctx = canvas.getContext('2d', { alpha: false });
         const gameState = document.getElementById('gameState');
         const startBtn = document.getElementById('startBtn');
+        const mainTitle = document.getElementById('mainTitle');
         
         // Configurazione HD
         let devicePixelRatio = window.devicePixelRatio || 1;
@@ -670,6 +702,38 @@
             }
         }
         
+        // Funzione per tornare alla schermata principale
+        function returnToMainMenu() {
+            gameState.innerHTML = `
+                <h2 id="mainTitle" class="breathing-title">Asteroids</h2>
+                <p>Destroy all asteroids!</p>
+                <p>Avoid collisions with asteroids and UFOs</p>
+                <p>Each asteroid splits into smaller pieces</p>
+                <button id="startBtn" class="game-btn">START GAME</button>
+            `;
+            
+            // Reimposta le variabili di gioco
+            gameActive = false;
+            gameOver = false;
+            asteroids = [];
+            bullets = [];
+            ufos = [];
+            particles = [];
+            
+            // Aggiungi event listener al pulsante di avvio
+            setTimeout(() => {
+                const startBtn = document.getElementById('startBtn');
+                startBtn.addEventListener('click', initGame);
+                startBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    initGame();
+                });
+                
+                // Rimuovi la classe game-over
+                gameState.classList.remove('game-over');
+            }, 100);
+        }
+        
         // Inizializza il gioco
         function initGame() {
             ship = new Ship();
@@ -852,13 +916,14 @@
             }
             
             gameState.innerHTML = `
-                <h2>Asteroids</h2>
-                <p>GAME OVER</p>
+                <h2 id="gameOverTitle" class="clickable-title">Asteroids</h2>
+                <h2>GAME OVER</h2>
                 <p>Final score: ${score}</p>
                 <p>Level reached: ${level}</p>
                 <button id="restartBtn" class="game-btn">PLAY AGAIN</button>
             `;
             gameState.style.display = 'flex';
+            gameState.classList.add('game-over');
             
             // Aggiungi event listener al pulsante di riavvio
             setTimeout(() => {
@@ -867,6 +932,14 @@
                 restartBtn.addEventListener('touchstart', (e) => {
                     e.preventDefault();
                     initGame();
+                });
+                
+                // Aggiungi event listener al titolo per tornare al menu principale
+                const gameOverTitle = document.getElementById('gameOverTitle');
+                gameOverTitle.addEventListener('click', returnToMainMenu);
+                gameOverTitle.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    returnToMainMenu();
                 });
             }, 100);
         }
