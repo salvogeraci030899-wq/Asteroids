@@ -118,7 +118,6 @@
             z-index: 10;
             padding: 20px;
             backdrop-filter: blur(5px);
-            /* Border rimosso come richiesto */
             transition: background-color 0.3s;
         }
         
@@ -198,13 +197,271 @@
             animation: breathing 3s ease-in-out infinite;
         }
         
-        @media (max-width: 600px) {
+        /* Pause Menu Button */
+        #pauseButton {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background-color: transparent;
+            border: 2px solid var(--accent-primary);
+            border-radius: 50%;
+            z-index: 5;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        #pauseButton::before {
+            content: "";
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+            border-left: 14px solid var(--text-primary);
+            transition: all 0.2s;
+        }
+        
+        #pauseButton.active::before {
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 8px solid var(--text-primary);
+            border-bottom: 8px solid transparent;
+            margin-top: 1px;
+        }
+        
+        #pauseButton:active {
+            transform: scale(0.95);
+            border-color: var(--accent-secondary);
+        }
+        
+        /* Settings Page */
+        .settings-container {
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+        }
+        
+        .settings-title {
+            margin-bottom: 30px !important;
+            cursor: pointer;
+            text-align: center;
+        }
+        
+        .setting-item {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: rgba(128, 128, 128, 0.1);
+            border-radius: 8px;
+            text-align: center;
+            min-height: 100px;
+        }
+        
+        .setting-label {
+            font-size: 18px;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        /* Toggle Switch - Design migliorato */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 70px;
+            height: 34px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--ui-border);
+            transition: .4s;
+            border-radius: 34px;
+            border: 2px solid var(--accent-primary);
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 2px;
+            bottom: 2px;
+            background-color: var(--button-text);
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--accent-secondary);
+            border-color: var(--accent-secondary);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(36px);
+            background-color: var(--button-bg);
+        }
+        
+        /* Grid layout per landscape */
+        @media (orientation: landscape) {
+            .settings-container {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                grid-gap: 15px;
+                max-width: 800px;
+                padding: 10px;
+            }
+            
+            .setting-item {
+                margin: 0;
+                padding: 10px;
+                min-height: 120px;
+                justify-content: space-between;
+            }
+            
+            .setting-label {
+                font-size: 16px;
+                margin-bottom: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 50px;
+            }
+            
+            #gameState h2 {
+                font-size: 28px;
+                margin-bottom: 15px;
+            }
+            
+            #gameState p {
+                font-size: 16px;
+                margin: 5px 0;
+            }
+            
+            .game-btn {
+                font-size: 20px;
+                padding: 12px 30px;
+                margin-top: 20px;
+            }
+        }
+        
+        /* Back button */
+        .back-btn {
+            background-color: transparent;
+            color: var(--text-primary);
+            border: 2px solid var(--accent-primary);
+            font-size: 20px;
+            padding: 10px 30px;
+            margin-top: 40px;
+        }
+        
+        /* High Scores */
+        .high-scores {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .score-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 15px;
+            border-bottom: 1px solid var(--ui-border);
+        }
+        
+        .score-rank {
+            font-weight: bold;
+            color: var(--accent-secondary);
+        }
+        
+        .score-value {
+            font-weight: bold;
+        }
+        
+        /* Shake animation for screen effects */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        /* Per mobile portrait */
+        @media (max-width: 600px) and (orientation: portrait) {
             #gameState h2 {
                 font-size: 28px;
             }
             
             #gameState p {
                 font-size: 18px;
+            }
+            
+            #pauseButton {
+                width: 45px;
+                height: 45px;
+                top: 15px;
+                right: 15px;
+            }
+            
+            #pauseButton::before {
+                border-top: 7px solid transparent;
+                border-bottom: 7px solid transparent;
+                border-left: 12px solid var(--text-primary);
+            }
+            
+            #pauseButton.active::before {
+                border-left: 3px solid transparent;
+                border-right: 3px solid transparent;
+                border-top: 7px solid var(--text-primary);
+                border-bottom: 7px solid transparent;
+            }
+        }
+        
+        /* Per tablet e schermi più grandi */
+        @media (min-width: 768px) {
+            #pauseButton {
+                width: 55px;
+                height: 55px;
+            }
+            
+            #pauseButton::before {
+                border-top: 9px solid transparent;
+                border-bottom: 9px solid transparent;
+                border-left: 16px solid var(--text-primary);
+            }
+            
+            #pauseButton.active::before {
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 9px solid var(--text-primary);
+                border-bottom: 9px solid transparent;
+            }
+            
+            .setting-item {
+                min-height: 110px;
             }
         }
     </style>
@@ -213,22 +470,36 @@
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         
+        <div id="pauseButton"></div>
+        
         <div id="gameState">
-            <h2 id="mainTitle" class="breathing-title">Asteroids</h2>
+            <h2 id="mainTitle" class="clickable-title breathing-title">Asteroids</h2>
             <p>Destroy all asteroids!</p>
             <p>Avoid collisions with asteroids and UFOs</p>
             <p>Each asteroid splits into smaller pieces</p>
             <button id="startBtn" class="game-btn">START GAME</button>
+            
+            <div class="high-scores" id="highScores" style="display: none;">
+                <h3>HIGH SCORES</h3>
+                <div id="scoresList"></div>
+            </div>
         </div>
     </div>
 
     <script>
+        // =====================
+        // GAME INITIALIZATION
+        // =====================
+        
         // Inizializzazione del canvas
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d', { alpha: false });
         const gameState = document.getElementById('gameState');
         const startBtn = document.getElementById('startBtn');
         const mainTitle = document.getElementById('mainTitle');
+        const pauseButton = document.getElementById('pauseButton');
+        const highScores = document.getElementById('highScores');
+        const scoresList = document.getElementById('scoresList');
         
         // Configurazione HD
         let devicePixelRatio = window.devicePixelRatio || 1;
@@ -238,6 +509,160 @@
                                 ctx.oBackingStorePixelRatio ||
                                 ctx.backingStorePixelRatio || 1;
         let ratio = devicePixelRatio / backingStoreRatio;
+        
+        // =====================
+        // SETTINGS & LOCALSTORAGE
+        // =====================
+        
+        const DEFAULT_SETTINGS = {
+            audioEnabled: true,
+            vibrationEnabled: true,
+            animationsEnabled: true,
+            screenShakeEnabled: true,
+            particleEffectsEnabled: true,
+            thrusterEffectsEnabled: true
+        };
+        
+        // Carica le impostazioni da localStorage
+        let settings = JSON.parse(localStorage.getItem('asteroids_settings')) || DEFAULT_SETTINGS;
+        
+        // Salva le impostazioni
+        function saveSettings() {
+            localStorage.setItem('asteroids_settings', JSON.stringify(settings));
+        }
+        
+        // Carica gli high scores
+        let highScoresList = JSON.parse(localStorage.getItem('asteroids_highscores')) || [];
+        
+        // Salva gli high scores
+        function saveHighScores() {
+            localStorage.setItem('asteroids_highscores', JSON.stringify(highScoresList));
+        }
+        
+        // Aggiungi un nuovo punteggio
+        function addHighScore(score, level) {
+            const newScore = {
+                score: score,
+                level: level,
+                date: new Date().toLocaleDateString(),
+                timestamp: Date.now()
+            };
+            
+            highScoresList.push(newScore);
+            highScoresList.sort((a, b) => b.score - a.score);
+            highScoresList = highScoresList.slice(0, 10); // Mantieni solo i top 10
+            saveHighScores();
+            updateHighScoresDisplay();
+        }
+        
+        // Aggiorna la visualizzazione degli high scores
+        function updateHighScoresDisplay() {
+            scoresList.innerHTML = '';
+            if (highScoresList.length === 0) {
+                scoresList.innerHTML = '<p style="color: var(--text-secondary); margin-top: 10px;">No scores yet!</p>';
+                return;
+            }
+            
+            highScoresList.forEach((scoreEntry, index) => {
+                const scoreElement = document.createElement('div');
+                scoreElement.className = 'score-entry';
+                scoreElement.innerHTML = `
+                    <span class="score-rank">${index + 1}.</span>
+                    <span>${scoreEntry.score} pts (Level ${scoreEntry.level})</span>
+                    <span class="score-value">${scoreEntry.date}</span>
+                `;
+                scoresList.appendChild(scoreElement);
+            });
+        }
+        
+        // =====================
+        // AUDIO SYSTEM
+        // =====================
+        
+        // Creazione degli elementi audio
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        let audioEnabled = settings.audioEnabled;
+        
+        // Funzione per creare suoni
+        function createSound(frequency, duration, type = 'sine') {
+            if (!audioEnabled) return;
+            
+            try {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = frequency;
+                oscillator.type = type;
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + duration);
+            } catch (e) {
+                console.log("Audio error:", e);
+            }
+        }
+        
+        // Suoni del gioco
+        const gameSounds = {
+            shoot: () => createSound(800, 0.1, 'square'),
+            explosion: () => createSound(200, 0.5, 'sawtooth'),
+            thrust: () => createSound(400, 0.2, 'sine'),
+            hyperspace: () => createSound(1200, 0.8, 'sine'),
+            ufo: () => createSound(300, 0.3, 'triangle'),
+            levelUp: () => {
+                createSound(523.25, 0.1, 'sine');
+                setTimeout(() => createSound(659.25, 0.1, 'sine'), 100);
+                setTimeout(() => createSound(783.99, 0.2, 'sine'), 200);
+            },
+            gameOver: () => {
+                createSound(392, 0.2, 'sine');
+                setTimeout(() => createSound(349.23, 0.2, 'sine'), 200);
+                setTimeout(() => createSound(329.63, 0.3, 'sine'), 400);
+            }
+        };
+        
+        // =====================
+        // VIBRATION SYSTEM
+        // =====================
+        
+        function vibrate(pattern) {
+            if (!settings.vibrationEnabled || !navigator.vibrate) return;
+            
+            try {
+                navigator.vibrate(pattern);
+            } catch (e) {
+                console.log("Vibration error:", e);
+            }
+        }
+        
+        // =====================
+        // ANIMATION EFFECTS
+        // =====================
+        
+        let screenShakeIntensity = 0;
+        let screenShakeDuration = 0;
+        
+        function applyScreenShake(intensity = 5, duration = 10) {
+            if (!settings.screenShakeEnabled) return;
+            
+            screenShakeIntensity = intensity;
+            screenShakeDuration = duration;
+            
+            // Applica l'animazione shake al canvas
+            canvas.classList.add('shake');
+            setTimeout(() => {
+                canvas.classList.remove('shake');
+            }, 500);
+        }
+        
+        // =====================
+        // GAME VARIABLES
+        // =====================
         
         // Imposta le dimensioni del canvas in HD
         function resizeCanvas() {
@@ -295,6 +720,7 @@
         
         // Variabili di gioco
         let gameActive = false;
+        let gamePaused = false;
         let score = 0;
         let lives = 3;
         let level = 1;
@@ -323,6 +749,10 @@
         let hyperspaceHoldTimer = null;
         let isHoldingForHyperspace = false;
         const HYPERSPACE_HOLD_TIME = 1000; // 1 secondo per attivare l'iperspazio
+        
+        // =====================
+        // GAME CLASSES
+        // =====================
         
         // Classe della navicella
         class Ship {
@@ -384,15 +814,22 @@
                     this.velY += Math.sin(this.angle) * this.thrustPower;
                     
                     // Aggiungi particelle di propulsione
-                    for (let i = 0; i < 3; i++) {
-                        particles.push({
-                            x: this.x - Math.cos(this.angle) * this.radius,
-                            y: this.y - Math.sin(this.angle) * this.radius,
-                            velX: Math.cos(this.angle + Math.PI + (Math.random() * 0.4 - 0.2)) * (3 + Math.random() * 3),
-                            velY: Math.sin(this.angle + Math.PI + (Math.random() * 0.4 - 0.2)) * (3 + Math.random() * 3),
-                            life: 20 + Math.random() * 20,
-                            color: gameColors.thruster
-                        });
+                    if (settings.thrusterEffectsEnabled) {
+                        for (let i = 0; i < 3; i++) {
+                            particles.push({
+                                x: this.x - Math.cos(this.angle) * this.radius,
+                                y: this.y - Math.sin(this.angle) * this.radius,
+                                velX: Math.cos(this.angle + Math.PI + (Math.random() * 0.4 - 0.2)) * (3 + Math.random() * 3),
+                                velY: Math.sin(this.angle + Math.PI + (Math.random() * 0.4 - 0.2)) * (3 + Math.random() * 3),
+                                life: 20 + Math.random() * 20,
+                                color: gameColors.thruster
+                            });
+                        }
+                    }
+                    
+                    // Suono del propulsore
+                    if (isThrusting && settings.audioEnabled) {
+                        gameSounds.thrust();
                     }
                 }
                 
@@ -415,6 +852,14 @@
                 if (!this.visible) return;
                 
                 ctx.save();
+                
+                // Applica screen shake se necessario
+                if (screenShakeDuration > 0) {
+                    const shakeX = (Math.random() - 0.5) * screenShakeIntensity;
+                    const shakeY = (Math.random() - 0.5) * screenShakeIntensity;
+                    ctx.translate(shakeX, shakeY);
+                }
+                
                 ctx.translate(this.x, this.y);
                 ctx.rotate(this.angle);
                 ctx.strokeStyle = gameColors.ship;
@@ -429,7 +874,7 @@
                 ctx.stroke();
                 
                 // Disegna il propulsore se attivo
-                if (this.thrust) {
+                if (this.thrust && settings.thrusterEffectsEnabled) {
                     ctx.beginPath();
                     ctx.moveTo(-this.radius, -this.radius * 0.4);
                     ctx.lineTo(-this.radius * 1.5, 0);
@@ -450,6 +895,11 @@
                         this.angle
                     ));
                     lastShotTime = currentTime;
+                    
+                    // Suono del proiettile
+                    if (settings.audioEnabled) gameSounds.shoot();
+                    // Vibrazione
+                    vibrate(50);
                 }
             }
             
@@ -473,21 +923,35 @@
                     this.velY = 0;
                     this.invincible = true;
                     this.invincibleTimer = 60;
+                    
+                    // Suono iperspazio
+                    if (settings.audioEnabled) gameSounds.hyperspace();
+                    // Vibrazione
+                    vibrate([100, 50, 100]);
                 }
             }
             
             explode() {
                 // Crea particelle di esplosione
-                for (let i = 0; i < 30; i++) {
-                    particles.push({
-                        x: this.x,
-                        y: this.y,
-                        velX: (Math.random() - 0.5) * 8,
-                        velY: (Math.random() - 0.5) * 8,
-                        life: 30 + Math.random() * 30,
-                        color: gameColors.explosion
-                    });
+                if (settings.particleEffectsEnabled) {
+                    for (let i = 0; i < 30; i++) {
+                        particles.push({
+                            x: this.x,
+                            y: this.y,
+                            velX: (Math.random() - 0.5) * 8,
+                            velY: (Math.random() - 0.5) * 8,
+                            life: 30 + Math.random() * 30,
+                            color: gameColors.explosion
+                        });
+                    }
                 }
+                
+                // Suono esplosione
+                if (settings.audioEnabled) gameSounds.explosion();
+                // Vibrazione
+                vibrate([100, 30, 100, 30, 100]);
+                // Screen shake
+                applyScreenShake(10, 15);
             }
         }
         
@@ -525,6 +989,14 @@
             
             draw() {
                 ctx.save();
+                
+                // Applica screen shake se necessario
+                if (screenShakeDuration > 0) {
+                    const shakeX = (Math.random() - 0.5) * screenShakeIntensity;
+                    const shakeY = (Math.random() - 0.5) * screenShakeIntensity;
+                    ctx.translate(shakeX, shakeY);
+                }
+                
                 ctx.translate(this.x, this.y);
                 ctx.rotate(this.angle);
                 ctx.strokeStyle = gameColors.asteroid;
@@ -570,16 +1042,25 @@
                 else if (this.size === 1) score += 100;
                 
                 // Crea particelle di esplosione
-                for (let i = 0; i < 15; i++) {
-                    particles.push({
-                        x: this.x,
-                        y: this.y,
-                        velX: (Math.random() - 0.5) * 6,
-                        velY: (Math.random() - 0.5) * 6,
-                        life: 20 + Math.random() * 20,
-                        color: gameColors.explosion
-                    });
+                if (settings.particleEffectsEnabled) {
+                    for (let i = 0; i < 15; i++) {
+                        particles.push({
+                            x: this.x,
+                            y: this.y,
+                            velX: (Math.random() - 0.5) * 6,
+                            velY: (Math.random() - 0.5) * 6,
+                            life: 20 + Math.random() * 20,
+                            color: gameColors.explosion
+                        });
+                    }
                 }
+                
+                // Suono esplosione
+                if (settings.audioEnabled) gameSounds.explosion();
+                // Vibrazione
+                vibrate(30);
+                // Screen shake
+                applyScreenShake(5, 10);
                 
                 return newAsteroids;
             }
@@ -609,10 +1090,21 @@
             }
             
             draw() {
+                ctx.save();
+                
+                // Applica screen shake se necessario
+                if (screenShakeDuration > 0) {
+                    const shakeX = (Math.random() - 0.5) * screenShakeIntensity;
+                    const shakeY = (Math.random() - 0.5) * screenShakeIntensity;
+                    ctx.translate(shakeX, shakeY);
+                }
+                
                 ctx.fillStyle = gameColors.bullet;
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                 ctx.fill();
+                
+                ctx.restore();
             }
         }
         
@@ -652,6 +1144,14 @@
             
             draw() {
                 ctx.save();
+                
+                // Applica screen shake se necessario
+                if (screenShakeDuration > 0) {
+                    const shakeX = (Math.random() - 0.5) * screenShakeIntensity;
+                    const shakeY = (Math.random() - 0.5) * screenShakeIntensity;
+                    ctx.translate(shakeX, shakeY);
+                }
+                
                 ctx.translate(this.x, this.y);
                 ctx.strokeStyle = gameColors.ufo;
                 ctx.lineWidth = 2 * (1/ratio); // Compensa il ratio HD per linee nitide
@@ -683,44 +1183,69 @@
                     this.y,
                     angleToShip + (Math.random() - 0.5) * (this.isLarge ? 0.3 : 0.1)
                 ));
+                
+                // Suono UFO
+                if (settings.audioEnabled) gameSounds.ufo();
             }
             
             explode() {
                 score += this.points;
                 
                 // Crea particelle di esplosione
-                for (let i = 0; i < 25; i++) {
-                    particles.push({
-                        x: this.x,
-                        y: this.y,
-                        velX: (Math.random() - 0.5) * 8,
-                        velY: (Math.random() - 0.5) * 8,
-                        life: 30 + Math.random() * 30,
-                        color: gameColors.explosion
-                    });
+                if (settings.particleEffectsEnabled) {
+                    for (let i = 0; i < 25; i++) {
+                        particles.push({
+                            x: this.x,
+                            y: this.y,
+                            velX: (Math.random() - 0.5) * 8,
+                            velY: (Math.random() - 0.5) * 8,
+                            life: 30 + Math.random() * 30,
+                            color: gameColors.explosion
+                        });
+                    }
                 }
+                
+                // Suono esplosione
+                if (settings.audioEnabled) gameSounds.explosion();
+                // Vibrazione
+                vibrate([50, 30, 50]);
+                // Screen shake
+                applyScreenShake(7, 12);
             }
         }
         
-        // Funzione per tornare alla schermata principale
-        function returnToMainMenu() {
+        // =====================
+        // UI FUNCTIONS
+        // =====================
+        
+        // Mostra la schermata principale
+        function showMainMenu() {
             gameState.innerHTML = `
-                <h2 id="mainTitle" class="breathing-title">Asteroids</h2>
+                <h2 id="mainTitle" class="clickable-title breathing-title">Asteroids</h2>
                 <p>Destroy all asteroids!</p>
                 <p>Avoid collisions with asteroids and UFOs</p>
                 <p>Each asteroid splits into smaller pieces</p>
                 <button id="startBtn" class="game-btn">START GAME</button>
             `;
             
+            // Mostra gli high scores
+            highScores.style.display = 'block';
+            updateHighScoresDisplay();
+            
+            gameState.style.display = 'flex';
+            pauseButton.style.display = 'none';
+            pauseButton.classList.remove('active');
+            
             // Reimposta le variabili di gioco
             gameActive = false;
+            gamePaused = false;
             gameOver = false;
             asteroids = [];
             bullets = [];
             ufos = [];
             particles = [];
             
-            // Aggiungi event listener al pulsante di avvio
+            // Aggiungi event listener
             setTimeout(() => {
                 const startBtn = document.getElementById('startBtn');
                 startBtn.addEventListener('click', initGame);
@@ -729,9 +1254,164 @@
                     initGame();
                 });
                 
+                // Aggiungi event listener al titolo per le impostazioni
+                const mainTitle = document.getElementById('mainTitle');
+                mainTitle.addEventListener('click', showSettings);
+                mainTitle.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    showSettings();
+                });
+                
                 // Rimuovi la classe game-over
                 gameState.classList.remove('game-over');
             }, 100);
+        }
+        
+        // Mostra le impostazioni
+        function showSettings() {
+            gameState.innerHTML = `
+                <div class="settings-container">
+                    <h2 class="settings-title">SETTINGS</h2>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">Audio</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="audioToggle" ${settings.audioEnabled ? 'checked' : ''}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">Vibration</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="vibrationToggle" ${settings.vibrationEnabled ? 'checked' : ''}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">Animations</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="animationsToggle" ${settings.animationsEnabled ? 'checked' : ''}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">Screen Shake</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="screenShakeToggle" ${settings.screenShakeEnabled ? 'checked' : ''}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">Particle Effects</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="particleToggle" ${settings.particleEffectsEnabled ? 'checked' : ''}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">Thruster Effects</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="thrusterToggle" ${settings.thrusterEffectsEnabled ? 'checked' : ''}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <button id="backBtn" class="game-btn back-btn">BACK TO MENU</button>
+                </div>
+            `;
+            
+            highScores.style.display = 'none';
+            gameState.style.display = 'flex';
+            gameState.style.justifyContent = 'center';
+            
+            // Aggiungi event listener per i toggle
+            setTimeout(() => {
+                document.getElementById('backBtn').addEventListener('click', showMainMenu);
+                
+                // Audio toggle
+                document.getElementById('audioToggle').addEventListener('change', function() {
+                    settings.audioEnabled = this.checked;
+                    saveSettings();
+                    audioEnabled = settings.audioEnabled;
+                });
+                
+                // Vibration toggle
+                document.getElementById('vibrationToggle').addEventListener('change', function() {
+                    settings.vibrationEnabled = this.checked;
+                    saveSettings();
+                });
+                
+                // Animations toggle
+                document.getElementById('animationsToggle').addEventListener('change', function() {
+                    settings.animationsEnabled = this.checked;
+                    saveSettings();
+                });
+                
+                // Screen Shake toggle
+                document.getElementById('screenShakeToggle').addEventListener('change', function() {
+                    settings.screenShakeEnabled = this.checked;
+                    saveSettings();
+                });
+                
+                // Particle Effects toggle
+                document.getElementById('particleToggle').addEventListener('change', function() {
+                    settings.particleEffectsEnabled = this.checked;
+                    saveSettings();
+                });
+                
+                // Thruster Effects toggle
+                document.getElementById('thrusterToggle').addEventListener('change', function() {
+                    settings.thrusterEffectsEnabled = this.checked;
+                    saveSettings();
+                });
+            }, 100);
+        }
+        
+        // Mostra il menu di pausa
+        function showPauseMenu() {
+            gamePaused = true;
+            pauseButton.classList.add('active');
+            gameState.innerHTML = `
+                <h2 id="pausedTitle" class="clickable-title breathing-title">GAME PAUSED</h2>
+                <p>Score: ${score}</p>
+                <p>Lives: ${lives}</p>
+                <p>Level: ${level}</p>
+            `;
+            gameState.style.display = 'flex';
+            
+            // Aggiungi event listener per tornare al menu principale
+            setTimeout(() => {
+                const pausedTitle = document.getElementById('pausedTitle');
+                pausedTitle.addEventListener('click', showMainMenu);
+                pausedTitle.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    showMainMenu();
+                });
+            }, 100);
+        }
+        
+        // Riprendi il gioco
+        function resumeGame() {
+            gamePaused = false;
+            pauseButton.classList.remove('active');
+            gameState.style.display = 'none';
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Toggle pausa
+        function togglePause() {
+            if (gameActive && !gameOver) {
+                if (gamePaused) {
+                    resumeGame();
+                } else {
+                    showPauseMenu();
+                }
+            }
         }
         
         // Inizializza il gioco
@@ -745,6 +1425,7 @@
             lives = 3;
             level = 1;
             gameOver = false;
+            gamePaused = false;
             
             // Reset controlli touch
             isThrusting = false;
@@ -766,6 +1447,9 @@
             }
             
             gameState.style.display = 'none';
+            pauseButton.style.display = 'flex';
+            pauseButton.classList.remove('active');
+            highScores.style.display = 'none';
             gameActive = true;
             
             // Avvia il game loop
@@ -882,6 +1566,9 @@
             if (asteroids.length === 0) {
                 level++;
                 
+                // Suono livello completato
+                if (settings.audioEnabled) gameSounds.levelUp();
+                
                 // Crea nuovi asteroidi per il nuovo livello
                 for (let i = 0; i < 4 + level; i++) {
                     asteroids.push(new Asteroid());
@@ -904,6 +1591,12 @@
             gameActive = false;
             gameOver = true;
             
+            // Suono game over
+            if (settings.audioEnabled) gameSounds.gameOver();
+            
+            // Aggiungi punteggio agli high scores
+            addHighScore(score, level);
+            
             // Disattiva tutti i controlli
             isThrusting = false;
             isRotatingLeft = false;
@@ -916,30 +1609,33 @@
             }
             
             gameState.innerHTML = `
-                <h2 id="gameOverTitle" class="clickable-title">Asteroids</h2>
+                <h2 id="gameOverTitle" class="clickable-title breathing-title">Asteroids</h2>
                 <h2>GAME OVER</h2>
                 <p>Final score: ${score}</p>
                 <p>Level reached: ${level}</p>
                 <button id="restartBtn" class="game-btn">PLAY AGAIN</button>
             `;
             gameState.style.display = 'flex';
+            pauseButton.style.display = 'none';
+            pauseButton.classList.remove('active');
             gameState.classList.add('game-over');
             
-            // Aggiungi event listener al pulsante di riavvio
+            // Aggiungi event listener
             setTimeout(() => {
                 const restartBtn = document.getElementById('restartBtn');
+                const gameOverTitle = document.getElementById('gameOverTitle');
+                
                 restartBtn.addEventListener('click', initGame);
+                gameOverTitle.addEventListener('click', showSettings);
+                
                 restartBtn.addEventListener('touchstart', (e) => {
                     e.preventDefault();
                     initGame();
                 });
                 
-                // Aggiungi event listener al titolo per tornare al menu principale
-                const gameOverTitle = document.getElementById('gameOverTitle');
-                gameOverTitle.addEventListener('click', returnToMainMenu);
                 gameOverTitle.addEventListener('touchstart', (e) => {
                     e.preventDefault();
-                    returnToMainMenu();
+                    showSettings();
                 });
             }, 100);
         }
@@ -959,10 +1655,10 @@
             ctx.fillText(`LEVEL: ${level}`, 20, 90);
         }
         
-        // Gestione input touch - Nuovo sistema di comandi
+        // Gestione input touch
         function handleTouchStart(e) {
             e.preventDefault();
-            if (!gameActive || !ship) return;
+            if (!gameActive || !ship || gamePaused) return;
             
             isTouching = true;
             const touch = e.touches[0];
@@ -973,7 +1669,7 @@
             // Avvia il timer per l'iperspazio (press and hold)
             isHoldingForHyperspace = true;
             hyperspaceHoldTimer = setTimeout(() => {
-                if (isHoldingForHyperspace && gameActive && ship) {
+                if (isHoldingForHyperspace && gameActive && ship && !gamePaused) {
                     ship.hyperspace();
                     isHoldingForHyperspace = false;
                 }
@@ -982,7 +1678,7 @@
         
         function handleTouchMove(e) {
             e.preventDefault();
-            if (!isTouching || !gameActive || !ship) return;
+            if (!isTouching || !gameActive || !ship || gamePaused) return;
             
             const touch = e.touches[0];
             const rect = canvas.getBoundingClientRect();
@@ -1026,7 +1722,7 @@
             if (isHoldingForHyperspace && !isThrusting && !isRotatingLeft && !isRotatingRight) {
                 clearTimeout(hyperspaceHoldTimer);
                 // Tocco rapido - spara
-                if (gameActive && ship) {
+                if (gameActive && ship && !gamePaused) {
                     ship.shoot();
                 }
             }
@@ -1045,7 +1741,7 @@
         
         // Game loop principale
         function gameLoop() {
-            if (!gameActive) return;
+            if (!gameActive || gamePaused || gameOver) return;
             
             // Aggiorna dimensioni canvas se necessario
             resizeCanvas();
@@ -1053,6 +1749,14 @@
             // Pulisci il canvas con una leggera trasparenza per l'effetto scia
             ctx.fillStyle = gameColors.trail;
             ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+            
+            // Aggiorna screen shake
+            if (screenShakeDuration > 0) {
+                screenShakeDuration--;
+                if (screenShakeDuration <= 0) {
+                    screenShakeIntensity = 0;
+                }
+            }
             
             // Aggiorna e disegna tutti gli oggetti
             if (ship) {
@@ -1124,19 +1828,24 @@
             requestAnimationFrame(gameLoop);
         }
         
+        // =====================
+        // INITIALIZATION
+        // =====================
+        
         // Inizializza quando la pagina è caricata
         window.addEventListener('load', () => {
             resizeCanvas();
             updateCanvasColors();
+            updateHighScoresDisplay();
             
-            // Mostra la schermata iniziale
-            gameState.style.display = 'flex';
+            // Mostra la schermata principale
+            showMainMenu();
             
-            // Avvia il gioco quando si clicca su "START GAME"
-            startBtn.addEventListener('click', initGame);
-            startBtn.addEventListener('touchstart', (e) => {
+            // Event listener per il pulsante di pausa
+            pauseButton.addEventListener('click', togglePause);
+            pauseButton.addEventListener('touchstart', (e) => {
                 e.preventDefault();
-                initGame();
+                togglePause();
             });
             
             // Gestione input touch
@@ -1156,8 +1865,45 @@
             
             // Previeni il comportamento di scorrimento della pagina sui dispositivi mobili
             document.addEventListener('touchmove', (e) => {
-                if (gameActive) e.preventDefault();
+                if (gameActive && !gamePaused) e.preventDefault();
             }, { passive: false });
+            
+            // Gestione tasti keyboard per debug (opzionale)
+            document.addEventListener('keydown', (e) => {
+                if (!gameActive || gamePaused) return;
+                
+                switch(e.key) {
+                    case 'ArrowLeft':
+                        isRotatingLeft = true;
+                        break;
+                    case 'ArrowRight':
+                        isRotatingRight = true;
+                        break;
+                    case 'ArrowUp':
+                        isThrusting = true;
+                        break;
+                    case ' ':
+                        ship.shoot();
+                        break;
+                    case 'p':
+                        togglePause();
+                        break;
+                }
+            });
+            
+            document.addEventListener('keyup', (e) => {
+                switch(e.key) {
+                    case 'ArrowLeft':
+                        isRotatingLeft = false;
+                        break;
+                    case 'ArrowRight':
+                        isRotatingRight = false;
+                        break;
+                    case 'ArrowUp':
+                        isThrusting = false;
+                        break;
+                }
+            });
         });
         
         // Disabilita il menu contestuale sul canvas
